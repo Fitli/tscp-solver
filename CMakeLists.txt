@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.17)
+project(tscp_solver_c C)
+
+set(CMAKE_C_STANDARD 99)
+
+if(CMAKE_HOST_WIN32)
+    set(libname "libconfig")
+else()
+    set(libname "config")
+endif()
+
+add_executable(tscp_solver_c main.c datatypes.h dot_printer.c dot_printer.h parse_config.c parse_config.h datatypes.c)
+
+target_link_libraries(tscp_solver_c ${libname} )
