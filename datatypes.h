@@ -43,12 +43,6 @@ struct Trainset {
 struct Edge {
     int id;
 
-    Station* start_station;
-    Station* end_station;
-
-    time_t start_time;
-    time_t end_time;
-
     Node *start_node;
     Node *end_node;
 
@@ -111,7 +105,7 @@ typedef struct EdgeSolution EdgeSolution;
 
 struct Solution {
     EdgeSolution *edge_solution;
-    int objective;
+    long long int objective;
 };
 typedef struct Solution Solution;
 

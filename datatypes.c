@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "datatypes.h"
+#include "objective.h"
 
 void destroy_problem(Problem *problem) {
     free(problem->stations);
@@ -13,7 +14,6 @@ void destroy_problem(Problem *problem) {
 }
 
 int empty_solution(Problem *problem, Solution *sol) {
-    sol->objective = 0;
     sol->edge_solution = malloc(problem->num_edges * sizeof(EdgeSolution));
     if (problem->edges == NULL) {
         fprintf(stderr, "Allocation error.\n");
@@ -27,6 +27,7 @@ int empty_solution(Problem *problem, Solution *sol) {
             return EXIT_FAILURE;
         }
     }
+    recalculate_objective(sol, problem);
 }
 
 void destroy_solution(Problem *problem, Solution *sol) {

@@ -324,15 +324,12 @@ int create_stations(config_t *cfg, Problem *problem) {
 void set_source_edge(Problem *problem, int st_idx, int edge_idx) {
     problem->stations[st_idx].source_edge = &problem->edges[edge_idx - 1];
     problem->edges[edge_idx-1].type = SOURCE_EDGE;
-    problem->edges[edge_idx-1].end_station = &problem->stations[st_idx];
     problem->edges[edge_idx-1].start_node = NULL;
 }
 
 void set_sink_edge(Problem *problem, int st_idx, int edge_idx) {
     problem->stations[st_idx].sink_edge = &problem->edges[edge_idx - 1];
     problem->edges[edge_idx-1].type = SINK_EDGE;
-    problem->edges[edge_idx-1].start_station = &problem->stations[st_idx];
-    problem->edges[edge_idx-1].end_station = NULL;
     problem->edges[edge_idx-1].end_node = NULL;
 }
 
