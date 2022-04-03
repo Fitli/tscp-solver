@@ -4,9 +4,11 @@
 
 #include "solution_modifier.h"
 #include "datatypes.h"
+#include "objective.h"
 
 /*
- * Heuristics for add_train_two_side
+ * Heuristics for add_train_two_side.
+ * Finds the first and the last SUBCONNESTION edges that should be chosen on the path from node_front to node_back.
  */
 void first_empty(const Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
                  int *front_move_edge_id, int *back_move_edge_id) {
@@ -66,39 +68,46 @@ void first_empty(const Solution *sol, const Problem *problem, const Node *node_f
     }
 }
 
-void add_trainset_to_node(Solution *sol, const Trainset *ts, Edge *edge) {
+void add_trainset_to_edge(Solution *sol, const Trainset *ts, Edge *edge) {
+    update_obj_add_ts_to_edge(sol, ts, edge);
     sol->edge_solution[edge->id].num_trainsets[ts->id] += 1;
     sol->edge_solution[edge->id].capacity += ts->seats;
 }
 
 
+/*
+ * Adds a new `trainset` that starts and ends in the `station`.
+ * For choosing the exact path of this trainset, the `heuristic` will be used.
+ */
 void add_train_two_side(Solution *sol, const Problem *problem, const Trainset *trainset, const Station *station,
                         void (*heuristic)(const Solution *, const Problem *, const Node *, const Node *, int *, int *)) {
+    update_obj_add_ts(sol, trainset);
     Node *node_front = station->source_edge->end_node;
     Node *node_back = station->sink_edge->start_node;
     int front_move_edge_id = 0, back_move_edge_id = 0;
+
     heuristic(sol, problem, node_front, node_back, &front_move_edge_id, &back_move_edge_id);
 
     while (front_move_edge_id >= 0) {
         while(node_front->out_subcon == NULL || node_front->out_subcon->id != front_move_edge_id) {
-            add_trainset_to_node(sol, trainset, node_front->out_waiting);
+            add_trainset_to_edge(sol, trainset, node_front->out_waiting);
             node_front = node_front->out_waiting->end_node;
         }
-        add_trainset_to_node(sol, trainset, node_front->out_subcon);
+        add_trainset_to_edge(sol, trainset, node_front->out_subcon);
         node_front = node_front->out_subcon->end_node;
 
         while(node_back->in_subcon == NULL || node_back->in_subcon->id != back_move_edge_id) {
-            add_trainset_to_node(sol, trainset, node_back->in_waiting);
+            add_trainset_to_edge(sol, trainset, node_back->in_waiting);
             node_back = node_back->in_waiting->start_node;
         }
-        add_trainset_to_node(sol, trainset, node_back->in_subcon);
+        add_trainset_to_edge(sol, trainset, node_back->in_subcon);
         node_back = node_back->in_subcon->start_node;
 
         heuristic(sol, problem, node_front, node_back, &front_move_edge_id, &back_move_edge_id);
     }
 
     while (node_front->id != node_back->id) {
-        add_trainset_to_node(sol, trainset, node_front->out_waiting);
+        add_trainset_to_edge(sol, trainset, node_front->out_waiting);
         node_front = node_front->out_waiting->end_node;
     }
 }
