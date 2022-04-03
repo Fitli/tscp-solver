@@ -111,8 +111,7 @@ typedef struct EdgeSolution EdgeSolution;
 
 struct Solution {
     EdgeSolution *edge_solution;
-    //int (* trainsets)[32]; // array of length subconnection_array_size
-    int fitness;
+    int objective;
 };
 typedef struct Solution Solution;
 

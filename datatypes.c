@@ -13,7 +13,7 @@ void destroy_problem(Problem *problem) {
 }
 
 int empty_solution(Problem *problem, Solution *sol) {
-    sol->fitness = 0;
+    sol->objective = 0;
     sol->edge_solution = malloc(problem->num_edges * sizeof(EdgeSolution));
     if (problem->edges == NULL) {
         fprintf(stderr, "Allocation error.\n");
