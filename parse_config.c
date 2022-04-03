@@ -278,9 +278,12 @@ int assign_stations(Problem *problem) {
         fprintf(stderr,"stanice %d:\n", i);
         Station *station = &(problem->stations[i]);
         Node *node = station->source_edge->end_node;
+        time_t time = 0;
         do {
             fprintf(stderr,"n%d ", node->id);
             node->station = station;
+            node->time = time;
+            time++;
             fprintf(stderr,"e%d ", node->out_waiting->id);
             node = node->out_waiting->end_node;
         }

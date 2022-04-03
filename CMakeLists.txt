@@ -9,6 +9,6 @@ else()
     set(libname "config")
 endif()
 
-add_executable(tscp_solver_c main.c datatypes.h dot_printer.c dot_printer.h parse_config.c parse_config.h datatypes.c)
+add_executable(tscp_solver_c main.c datatypes.h dot_printer.c dot_printer.h parse_config.c parse_config.h datatypes.c solution_modifier.c solution_modifier.h)
 
 target_link_libraries(tscp_solver_c ${libname} )

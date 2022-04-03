@@ -23,7 +23,7 @@ enum edge_type {
 
 struct Station {
     char name[256];
-    unsigned int id;
+    int id;
     Edge *source_edge;
     Edge *sink_edge;
 };
