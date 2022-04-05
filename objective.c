@@ -2,11 +2,12 @@
 // Created by fitli on 03.04.22.
 //
 
+#include <stdio.h>
 #include "objective.h"
 #include "datatypes.h"
 
 //TODO zadefinovat na lepším místě
-#define CAPACITY_PENALTY 10000000
+#define CAPACITY_PENALTY 1
 
 void recalculate_objective(Solution *sol, Problem *problem) {
     sol->objective = 0;
@@ -25,7 +26,7 @@ void recalculate_objective(Solution *sol, Problem *problem) {
         }
 
         if(edge_sol->capacity < edge->minimal_capacity) {
-            sol->objective -= CAPACITY_PENALTY * (edge->minimal_capacity - edge_sol->capacity);
+            sol->hard_objective -= CAPACITY_PENALTY * (edge->minimal_capacity - edge_sol->capacity);
         }
     }
 }
@@ -38,11 +39,15 @@ void update_obj_add_ts_to_edge(Solution *sol, const Trainset *ts, Edge *edge) {
     sol->objective += edge->distance_abroad * ts->abroad_gain;
 
     int old_edge_capacity = sol->edge_solution[edge->id].capacity;
-    if(old_edge_capacity + ts->seats < edge->minimal_capacity) {
-        sol->objective += ts->seats * CAPACITY_PENALTY;
-    } else {
-        sol->objective += (edge->minimal_capacity - old_edge_capacity) * CAPACITY_PENALTY;
+
+    if(old_edge_capacity > edge->minimal_capacity) {
+        return;
     }
+    if(old_edge_capacity + ts->seats < edge->minimal_capacity) {
+        sol->hard_objective += ts->seats * CAPACITY_PENALTY;
+        return;
+    }
+    sol->hard_objective += (edge->minimal_capacity - old_edge_capacity) * CAPACITY_PENALTY;
 }
 
 /*
@@ -54,7 +59,7 @@ void update_obj_remove_ts_from_edge(Solution *sol, const Trainset *ts, Edge *edg
 
     int old_edge_capacity = sol->edge_solution[edge->id].capacity;
     if(old_edge_capacity - ts->seats < edge->minimal_capacity) {
-        sol->objective -= edge->minimal_capacity - (old_edge_capacity - ts->seats);
+        sol->hard_objective -= (edge->minimal_capacity - (old_edge_capacity - ts->seats)) * CAPACITY_PENALTY;
     }
 }
 

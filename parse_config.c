@@ -293,6 +293,8 @@ int assign_stations(Problem *problem) {
             fprintf(stderr, "Unconsistent waiting nodes.\n");
             return EXIT_FAILURE;
         }
+        node->station = station;
+        node->time = time;
     }
     return EXIT_SUCCESS;
 }

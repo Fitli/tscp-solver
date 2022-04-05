@@ -106,6 +106,7 @@ typedef struct EdgeSolution EdgeSolution;
 struct Solution {
     EdgeSolution *edge_solution;
     long long int objective;
+    long long int hard_objective;
 };
 typedef struct Solution Solution;
 
