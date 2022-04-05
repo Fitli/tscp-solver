@@ -8,7 +8,8 @@
 #include "datatypes.h"
 
 void add_train_two_side(Solution *sol, const Problem *problem, const Trainset *trainset, const Station *station,
-                        void(*heuristic)(const Solution *, const Problem *, const Node *, const Node *, int *, int *));
+                        void (*heuristic)(const Solution *, const Problem *, const Node *, const Node *, int *, int *),
+                        Edge ***edges, int *num_edges);
 
 void first_empty(const Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
                  int *front_move_edge_id, int *back_move_edge_id);
