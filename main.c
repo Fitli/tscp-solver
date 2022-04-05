@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "datatypes.h"
 #include "parse_config.h"
 #include "solution_modifier.h"
@@ -28,5 +29,6 @@ int main() {
 
     destroy_solution(&problem, &sol);
     destroy_problem(&problem);
+    free(edges);
     return 0;
 }

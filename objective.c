@@ -11,6 +11,7 @@
 
 void recalculate_objective(Solution *sol, Problem *problem) {
     sol->objective = 0;
+    sol->hard_objective = 0;
     for (int ed_id = 0; ed_id < problem->num_edges; ed_id++) {
         struct Edge *edge = &problem->edges[ed_id];
         EdgeSolution *edge_sol = &sol->edge_solution[ed_id];

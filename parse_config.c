@@ -173,6 +173,8 @@ int create_edges(config_t *cfg, Problem *problem) {
     for (int i = n_subconn; i<problem->num_edges; i++) {
         problem->edges[i].type = WAITING;
         problem->edges[i].minimal_capacity = 0;
+        problem->edges[i].distance_abroad = 0;
+        problem->edges[i].distance = 0;
     }
 
     if(set_array_field_from_config(cfg, problem, "pass_subconn", n_subconn, set_edge_passengers) != EXIT_SUCCESS) {
