@@ -12,8 +12,8 @@
  * Heuristics for add_train_two_side.
  * Finds the first and the last SUBCONNESTION edges that should be chosen on the path from node_front to node_back.
  */
-void first_empty(const Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
-                 int *front_move_edge_id, int *back_move_edge_id) {
+void first_empty_subcon(const Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
+                        int *front_move_edge_id, int *back_move_edge_id) {
     int front_move_edges[problem->num_stations];
     int back_move_edges[problem->num_stations];
 
@@ -27,7 +27,7 @@ void first_empty(const Solution *sol, const Problem *problem, const Node *node_f
 
     while(node_front->id != node_back->id) {
         Edge *front_edge = node_front->out_subcon;
-        if (front_edge != NULL) {
+        if (front_edge != NULL && sol->edge_solution[front_edge->id].capacity == 0) {
             int front_st_id = front_edge->end_node->station->id;
 
             if (front_move_edges[front_st_id] == -1) {
@@ -50,7 +50,7 @@ void first_empty(const Solution *sol, const Problem *problem, const Node *node_f
         }
 
         Edge *back_edge = node_back->in_subcon;
-        if (back_edge != NULL) {
+        if (back_edge != NULL && sol->edge_solution[back_edge->id].capacity == 0) {
             int back_st_id = back_edge->start_node->station->id;
 
             if (back_move_edges[back_st_id] == -1) {
