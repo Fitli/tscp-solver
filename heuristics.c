@@ -7,6 +7,9 @@
 #include "heuristics.h"
 #include "datatypes.h"
 
+/*
+ * STATIONS
+ */
 int count_empty_subcons_station(Problem *problem, Station *station, Solution *sol) {
     int result = 0;
     Node *node = station->source_edge->end_node;
@@ -67,4 +70,20 @@ int select_station_first_empty_departure(Problem *problem, Solution *solution) {
         }
     }
     return -1;
+}
+
+/*
+ * EDGES
+ */
+
+int edge_is_empty(Edge *edge, EdgeSolution *sol) {
+    return sol->capacity == 0;
+}
+
+int edge_needs_more_ts(Edge *edge, EdgeSolution *sol) {
+    return sol->capacity < edge->minimal_capacity;
+}
+
+int edge_any(Edge *edge, EdgeSolution *sol) {
+    return 1;
 }

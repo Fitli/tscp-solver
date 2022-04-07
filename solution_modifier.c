@@ -7,13 +7,16 @@
 #include "solution_modifier.h"
 #include "datatypes.h"
 #include "objective.h"
+#include "heuristics.h"
+
 
 /*
- * Heuristics for add_train_two_side.
- * Finds the first and the last SUBCONNESTION edges that should be chosen on the path from node_front to node_back.
+ * Finds the first and the last SUBCONNESTION edges that can be chosen on the path from node_front to node_back
+ * where the predicates front_condition and back_condition hold.
  */
-void first_empty_subcon(const Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
-                        int *front_move_edge_id, int *back_move_edge_id) {
+void select_front_back_subcons(const Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
+                               int (*front_condition)(Edge *, EdgeSolution *), int (*back_condition)(Edge *, EdgeSolution *),
+                               int *front_move_edge_id, int *back_move_edge_id) {
     int front_move_edges[problem->num_stations];
     int back_move_edges[problem->num_stations];
 
@@ -27,7 +30,10 @@ void first_empty_subcon(const Solution *sol, const Problem *problem, const Node 
 
     while(node_front->id != node_back->id) {
         Edge *front_edge = node_front->out_subcon;
-        if (front_edge != NULL && sol->edge_solution[front_edge->id].capacity == 0) {
+        EdgeSolution *front_edge_sol;
+        if(front_edge != NULL)
+             front_edge_sol = &sol->edge_solution[front_edge->id];
+        if (front_edge != NULL && front_condition(front_edge, front_edge_sol)) {
             int front_st_id = front_edge->end_node->station->id;
 
             if (front_move_edges[front_st_id] == -1) {
@@ -50,7 +56,10 @@ void first_empty_subcon(const Solution *sol, const Problem *problem, const Node 
         }
 
         Edge *back_edge = node_back->in_subcon;
-        if (back_edge != NULL && sol->edge_solution[back_edge->id].capacity == 0) {
+        EdgeSolution *back_edge_sol;
+        if(back_edge != NULL)
+            back_edge_sol = &sol->edge_solution[back_edge->id];
+        if (back_edge != NULL && back_condition(back_edge, back_edge_sol)) {
             int back_st_id = back_edge->start_node->station->id;
 
             if (back_move_edges[back_st_id] == -1) {
@@ -102,7 +111,6 @@ void add_to_buffer(Edge ***buffer, Edge *content, int *num_elems, int *buffer_ca
  * `edges` is an output parameter for storing array of edges that were affected and `num_edges` is their number.
  */
 void add_train_two_side(Solution *sol, const Problem *problem, const Trainset *trainset, const Station *station,
-                        void (*heuristic)(const Solution *, const Problem *, const Node *, const Node *, int *, int *),
                         Edge ***edges, int *num_edges) {
     update_obj_add_ts(sol, trainset);
     Node *node_front = station->source_edge->end_node;
@@ -116,9 +124,27 @@ void add_train_two_side(Solution *sol, const Problem *problem, const Trainset *t
     Edge **buffer_front = malloc(cap_buffer_front * sizeof(Edge *));
     Edge **buffer_back = malloc(cap_buffer_back * sizeof(Edge *));
 
-    heuristic(sol, problem, node_front, node_back, &front_move_edge_id, &back_move_edge_id);
+
 
     while (front_move_edge_id >= 0) {
+
+        select_front_back_subcons(sol, problem, node_front, node_back, &edge_is_empty, &edge_is_empty, &front_move_edge_id, &back_move_edge_id);
+        if(front_move_edge_id < 0) {
+            select_front_back_subcons(sol, problem, node_front, node_back, &edge_is_empty, &edge_needs_more_ts, &front_move_edge_id, &back_move_edge_id);
+        }
+        if(front_move_edge_id < 0) {
+            select_front_back_subcons(sol, problem, node_front, node_back, &edge_needs_more_ts, &edge_is_empty, &front_move_edge_id, &back_move_edge_id);
+        }
+        if(front_move_edge_id < 0) {
+            select_front_back_subcons(sol, problem, node_front, node_back, &edge_is_empty, &edge_any, &front_move_edge_id, &back_move_edge_id);
+        }
+        if(front_move_edge_id < 0) {
+            select_front_back_subcons(sol, problem, node_front, node_back, &edge_any, &edge_is_empty, &front_move_edge_id, &back_move_edge_id);
+        }
+        if(front_move_edge_id < 0) {
+            break;
+        }
+
         while(node_front->out_subcon == NULL || node_front->out_subcon->id != front_move_edge_id) {
             add_trainset_to_edge(sol, trainset, node_front->out_waiting);
             add_to_buffer(&buffer_front, node_front->out_waiting, &num_edges_front, &cap_buffer_front);
@@ -136,8 +162,6 @@ void add_train_two_side(Solution *sol, const Problem *problem, const Trainset *t
         add_trainset_to_edge(sol, trainset, node_back->in_subcon);
         add_to_buffer(&buffer_back, node_front->in_subcon, &num_edges_back, &cap_buffer_back);
         node_back = node_back->in_subcon->start_node;
-
-        heuristic(sol, problem, node_front, node_back, &front_move_edge_id, &back_move_edge_id);
     }
 
     while (node_front->id != node_back->id) {
