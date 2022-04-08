@@ -28,7 +28,9 @@ void select_front_back_subcons(const Solution *sol, const Problem *problem, cons
     *back_move_edge_id = -1;
     *front_move_edge_id = -1;
 
-    while(node_front->id != node_back->id) {
+    time_t end_time = node_back->time;
+
+    while(node_front->time < end_time) {
         Edge *front_edge = node_front->out_subcon;
         EdgeSolution *front_edge_sol;
         if(front_edge != NULL)
@@ -50,10 +52,6 @@ void select_front_back_subcons(const Solution *sol, const Problem *problem, cons
             }
         }
         node_front = node_front->out_waiting->end_node;
-
-        if(node_front->id == node_back->id) {
-            return;
-        }
 
         Edge *back_edge = node_back->in_subcon;
         EdgeSolution *back_edge_sol;
