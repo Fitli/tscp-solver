@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "heuristics.h"
 #include "datatypes.h"
 
@@ -70,6 +71,33 @@ int select_station_first_empty_departure(Problem *problem, Solution *solution) {
         }
     }
     return -1;
+}
+
+int select_station_last_empty_arrival(Problem *problem, Solution *solution) {
+    Node *station_nodes[problem->num_stations];
+    for(int i = 0; i<problem->num_stations; i++) {
+        station_nodes[i] = problem->stations[i].sink_edge->start_node;
+    }
+    bool all_null = false;
+    while(!all_null) {
+        all_null = true;
+        for(int i = 0; i<problem->num_stations; i++) {
+            if(station_nodes[i] == NULL) {
+                continue;
+            }
+            Edge *in_subcon = station_nodes[i]->in_subcon;
+            if(in_subcon && solution->edge_solution[in_subcon->id].capacity == 0) {
+                return i;
+            }
+            station_nodes[i] = station_nodes[i]->in_waiting->start_node;
+            all_null = false;
+        }
+    }
+    return -1;
+}
+
+int select_station_random(Problem *problem, Solution *solution) {
+    return ((int) random())%problem->num_stations;
 }
 
 /*
