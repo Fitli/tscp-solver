@@ -149,7 +149,7 @@ int create_edges(config_t *cfg, Problem *problem) {
         return EXIT_FAILURE;
     }
     if(n_subconn > problem->num_edges) {
-        fprintf(stderr, "Nuber of subconnections is bigger then number of edges.\n");
+        fprintf(stderr, "Number of subconnections is bigger then number of edges.\n");
         return EXIT_FAILURE;
     }
 
@@ -277,20 +277,20 @@ int create_nodes(config_t *cfg, Problem *problem) {
 
 int assign_stations(Problem *problem) {
     for(int i = 0; i < problem->num_stations; i++) {
-        fprintf(stderr,"stanice %d:\n", i);
+        printf("stanice %d:\n", i);
         Station *station = &(problem->stations[i]);
         Node *node = station->source_edge->end_node;
         time_t time = 0;
         do {
-            fprintf(stderr,"n%d ", node->id);
+            printf("n%d ", node->id);
             node->station = station;
             node->time = time;
             time++;
-            fprintf(stderr,"e%d ", node->out_waiting->id);
+            printf("e%d ", node->out_waiting->id);
             node = node->out_waiting->end_node;
         }
         while (node->out_waiting->end_node != NULL && node->out_waiting->type != SINK_EDGE);
-        fprintf(stderr,"\n");
+        printf("\n");
         if (node->out_waiting != station->sink_edge) {
             fprintf(stderr, "Unconsistent waiting nodes.\n");
             return EXIT_FAILURE;
@@ -358,7 +358,7 @@ int parse(const char* file, Problem *problem) {
         config_destroy(&cfg);
         return(EXIT_FAILURE);
     }
-    fprintf(stderr, "Config file loaded\n");
+    printf("Config file loaded\n");
 
     if(load_constants(&cfg, problem) != EXIT_SUCCESS ||
        create_stations(&cfg, problem) != EXIT_SUCCESS ||
@@ -371,7 +371,7 @@ int parse(const char* file, Problem *problem) {
     };
 
     config_destroy(&cfg);
-    fprintf(stderr, "Config successfully parsed\n");
+    printf("Config successfully parsed\n");
 
     return(EXIT_SUCCESS);
 }
