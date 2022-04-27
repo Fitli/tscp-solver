@@ -103,15 +103,44 @@ int select_station_random(Problem *problem, Solution *solution) {
 /*
  * EDGES
  */
+int eval_edge_condition(struct EdgeCondition *cond, Edge *edge, EdgeSolution *sol){
+    int result = 1;
+    while(cond != NULL && result) {
+        result = cond->predicate(edge, sol, cond->a_data);
+        cond = cond->conjunction;
+    }
+    return result;
+}
 
-int edge_is_empty(Edge *edge, EdgeSolution *sol) {
+EdgeCondition *create_edge_condition(int (*predicate)(Edge *, EdgeSolution *, void *), void *a_data, EdgeCondition *conj) {
+    EdgeCondition *result = malloc(sizeof(EdgeCondition));
+    result->predicate = predicate;
+    result->a_data = a_data;
+    result->conjunction = conj;
+    return result;
+}
+
+void free_edge_conditions(EdgeCondition *cond) {
+    while (cond != NULL) {
+        EdgeCondition *next = cond->conjunction;
+        free(cond);
+        cond = next;
+    }
+}
+
+int edge_is_empty(Edge *edge, EdgeSolution *sol, void *a_data) {
     return sol->capacity == 0;
 }
 
-int edge_needs_more_ts(Edge *edge, EdgeSolution *sol) {
+int edge_needs_more_ts(Edge *edge, EdgeSolution *sol, void *a_data) {
     return sol->capacity < edge->minimal_capacity;
 }
 
-int edge_any(Edge *edge, EdgeSolution *sol) {
+int edge_any(Edge *edge, EdgeSolution *sol, void *a_data) {
     return 1;
+}
+
+int edge_has_trainset(Edge *edge, EdgeSolution *sol, void *a_data) {
+    Trainset *ts = (Trainset *) a_data;
+    return sol->num_trainsets[ts->id] > 0;
 }

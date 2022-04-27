@@ -44,7 +44,23 @@ int main() {
             break;
         }
         printf("add a train beginning in %d\n", station_id);
-        find_train_two_side(&sol, &problem, &problem.stations[station_id],
+
+        int num_conditions = 5;
+        EdgeCondition *front_conditions[5];
+        front_conditions[0] = create_edge_condition(&edge_is_empty, NULL, NULL);
+        front_conditions[1] = create_edge_condition(&edge_is_empty, NULL, NULL);
+        front_conditions[2] = create_edge_condition(&edge_needs_more_ts, NULL, NULL);
+        front_conditions[3] = create_edge_condition(&edge_is_empty, NULL, NULL);
+        front_conditions[4] = create_edge_condition(&edge_any, NULL, NULL);
+
+        EdgeCondition *back_conditions[5];
+        back_conditions[0] = create_edge_condition(&edge_is_empty, NULL, NULL);
+        back_conditions[1] = create_edge_condition(&edge_needs_more_ts, NULL, NULL);
+        back_conditions[2] = create_edge_condition(&edge_is_empty, NULL, NULL);
+        back_conditions[3] = create_edge_condition(&edge_any, NULL, NULL);
+        back_conditions[4] = create_edge_condition(&edge_is_empty, NULL, NULL);
+
+        find_train_two_side(&sol, &problem, &problem.stations[station_id], num_conditions, front_conditions, back_conditions,
                             &edges, &num_edges);
         add_train_array(&sol, &problem.trainset_types[0], edges, num_edges);
         printf("objective: %lld hard-objective: %lld\n", sol.objective, sol.hard_objective);

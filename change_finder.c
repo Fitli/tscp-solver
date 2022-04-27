@@ -13,7 +13,7 @@
  * where the predicates front_condition and back_condition hold.
  */
 void select_front_back_subcons(const Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
-                               int (*front_condition)(Edge *, EdgeSolution *), int (*back_condition)(Edge *, EdgeSolution *),
+                               EdgeCondition *front_cond, EdgeCondition *back_cond,
                                int *front_move_edge_id, int *back_move_edge_id) {
     int front_move_edges[problem->num_stations];
     int back_move_edges[problem->num_stations];
@@ -33,7 +33,7 @@ void select_front_back_subcons(const Solution *sol, const Problem *problem, cons
         EdgeSolution *front_edge_sol;
         if(front_edge != NULL)
             front_edge_sol = &sol->edge_solution[front_edge->id];
-        if (front_edge != NULL && front_condition(front_edge, front_edge_sol)) {
+        if (front_edge != NULL && eval_edge_condition(front_cond, front_edge, front_edge_sol)) {
             int front_st_id = front_edge->end_node->station->id;
 
             if (front_move_edges[front_st_id] == -1) {
@@ -55,7 +55,7 @@ void select_front_back_subcons(const Solution *sol, const Problem *problem, cons
         EdgeSolution *back_edge_sol;
         if(back_edge != NULL)
             back_edge_sol = &sol->edge_solution[back_edge->id];
-        if (back_edge != NULL && back_condition(back_edge, back_edge_sol)) {
+        if (back_edge != NULL && eval_edge_condition(back_cond, back_edge, back_edge_sol)) {
             int back_st_id = back_edge->start_node->station->id;
 
             if (back_move_edges[back_st_id] == -1) {
@@ -92,7 +92,8 @@ void add_to_buffer(Edge ***buffer, Edge *content, int *num_elems, int *buffer_ca
     (*buffer)[*num_elems] = content;
     (*num_elems)++;
 }
-void find_train_two_side(Solution *sol, const Problem *problem, const Station *station,
+void find_train_two_side(Solution *sol, const Problem *problem, const Station *station, int num_conds,
+                         EdgeCondition **front_conditions, EdgeCondition **back_conditions,
                          Edge ***edges, int *num_edges) {
     Node *node_front = station->source_edge->end_node;
     Node *node_back = station->sink_edge->start_node;
@@ -108,19 +109,11 @@ void find_train_two_side(Solution *sol, const Problem *problem, const Station *s
 
 
     while (front_move_edge_id >= 0) {
-
-        select_front_back_subcons(sol, problem, node_front, node_back, &edge_is_empty, &edge_is_empty, &front_move_edge_id, &back_move_edge_id);
-        if(front_move_edge_id < 0) {
-            select_front_back_subcons(sol, problem, node_front, node_back, &edge_is_empty, &edge_needs_more_ts, &front_move_edge_id, &back_move_edge_id);
-        }
-        if(front_move_edge_id < 0) {
-            select_front_back_subcons(sol, problem, node_front, node_back, &edge_needs_more_ts, &edge_is_empty, &front_move_edge_id, &back_move_edge_id);
-        }
-        if(front_move_edge_id < 0) {
-            select_front_back_subcons(sol, problem, node_front, node_back, &edge_is_empty, &edge_any, &front_move_edge_id, &back_move_edge_id);
-        }
-        if(front_move_edge_id < 0) {
-            select_front_back_subcons(sol, problem, node_front, node_back, &edge_any, &edge_is_empty, &front_move_edge_id, &back_move_edge_id);
+        for (int i = 0; i < num_conds; i++) {
+            select_front_back_subcons(sol, problem, node_front, node_back, front_conditions[i], back_conditions[i], &front_move_edge_id, &back_move_edge_id);
+            if(front_move_edge_id >= 0) {
+                break;
+            }
         }
         if(front_move_edge_id < 0) {
             break;
