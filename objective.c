@@ -35,7 +35,7 @@ void recalculate_objective(Solution *sol, Problem *problem) {
 /*
  * Update solution objective function after adding a trainset to an edge. Called BEFORE the traiset is really added.
  */
-void update_obj_add_ts_to_edge(Solution *sol, const Trainset *ts, Edge *edge) {
+void update_obj_add_ts_to_edge(Solution *sol, const Trainset *ts, const Edge *edge) {
     sol->objective -= edge->distance * (ts->re_cost + ts->fe_cost + ts->el_cost);
     sol->objective += edge->distance_abroad * ts->abroad_gain;
 
@@ -54,7 +54,7 @@ void update_obj_add_ts_to_edge(Solution *sol, const Trainset *ts, Edge *edge) {
 /*
  * Update solution objective function after removing a trainset from an edge. Called BEFORE the traiset is really removed.
  */
-void update_obj_remove_ts_from_edge(Solution *sol, const Trainset *ts, Edge *edge) {
+void update_obj_remove_ts_from_edge(Solution *sol, const Trainset *ts, const Edge *edge) {
     sol->objective += edge->distance * (ts->re_cost + ts->fe_cost + ts->el_cost);
     sol->objective -= edge->distance_abroad * ts->abroad_gain;
 

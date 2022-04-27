@@ -23,7 +23,7 @@ void print_in_out(Problem *problem) {
 
 int main() {
     Problem problem;
-    parse("../../big_data.cfg", &problem);
+    parse("../../small_data.cfg", &problem);
     Solution sol;
 
     empty_solution(&problem, &sol);
@@ -43,8 +43,9 @@ int main() {
             break;
         }
         printf("add a train beginning in %d\n", station_id);
-        add_train_two_side(&sol, &problem, &problem.trainset_types[0], &problem.stations[station_id],
-                           &edges, &num_edges);
+        find_train_two_side(&sol, &problem, &problem.trainset_types[0], &problem.stations[station_id],
+                            &edges, &num_edges);
+        add_train_array(&sol, &problem.trainset_types[0], edges, num_edges);
         printf("objective: %lld hard-objective: %lld\n", sol.objective, sol.hard_objective);
         int empty_subcons = 0;
         for (int j = 0; j < problem.num_edges; j++) {
@@ -60,7 +61,7 @@ int main() {
     }
 
 
-    //destroy_solution(&problem, &sol);
-    //destroy_problem(&problem);
+    destroy_solution(&problem, &sol);
+    destroy_problem(&problem);
     return 0;
 }

@@ -77,25 +77,35 @@ void select_front_back_subcons(const Solution *sol, const Problem *problem, cons
     }
 }
 
-void add_trainset_to_edge(Solution *sol, const Trainset *ts, Edge *edge) {
+void add_trainset_to_edge(Solution *sol, const Trainset *ts, const Edge *edge) {
     update_obj_add_ts_to_edge(sol, ts, edge);
     sol->edge_solution[edge->id].num_trainsets[ts->id] += 1;
     sol->edge_solution[edge->id].capacity += ts->seats;
 }
 
+void remove_trainset_from_edge(Solution *sol, const Trainset *ts, const Edge *edge) {
+    if(sol->edge_solution[edge->id].num_trainsets[ts->id] > 0) {
+        update_obj_remove_ts_from_edge(sol, ts, edge);
+        sol->edge_solution[edge->id].num_trainsets[ts->id] -= 1;
+        sol->edge_solution[edge->id].capacity -= ts->seats;
+    }
+    else(fprintf(stderr, "Tried to remove trainset %d form edge %d, but it is not present.\n", ts->id, edge->id));
+}
+
 
 /*
- * Just a helper function for add_train_two_side. Adds an edge to a buffer
+ * Just a helper function for find_train_two_side. Adds an edge to a buffer
  */
 void add_to_buffer(Edge ***buffer, Edge *content, int *num_elems, int *buffer_cap) {
-    if(num_elems == buffer_cap) {
-        Edge **helper = realloc(*buffer, *buffer_cap * 2);
+    if(*num_elems >= *buffer_cap) {
+        size_t size = (*buffer_cap) * 2 * sizeof(Edge *);
+        Edge **helper = realloc(*buffer, size);
         if (helper == NULL) {
             fprintf(stderr, "Allocation error (add_to_buffer)\n");
             return;
         }
-        *buffer = helper;
-        *buffer_cap *= 2;
+        (*buffer) = helper;
+        (*buffer_cap) *= 2;
     }
     (*buffer)[*num_elems] = content;
     (*num_elems)++;
@@ -108,9 +118,8 @@ void add_to_buffer(Edge ***buffer, Edge *content, int *num_elems, int *buffer_ca
  *
  * `edges` is an output parameter for storing array of edges that were affected and `num_edges` is their number.
  */
-void add_train_two_side(Solution *sol, const Problem *problem, const Trainset *trainset, const Station *station,
-                        Edge ***edges, int *num_edges) {
-    update_obj_add_ts(sol, trainset);
+void find_train_two_side(Solution *sol, const Problem *problem, const Trainset *trainset, const Station *station,
+                         Edge ***edges, int *num_edges) {
     Node *node_front = station->source_edge->end_node;
     Node *node_back = station->sink_edge->start_node;
     int front_move_edge_id = 0, back_move_edge_id = 0;
@@ -144,32 +153,27 @@ void add_train_two_side(Solution *sol, const Problem *problem, const Trainset *t
         }
 
         while(node_front->out_subcon == NULL || node_front->out_subcon->id != front_move_edge_id) {
-            add_trainset_to_edge(sol, trainset, node_front->out_waiting);
             add_to_buffer(&buffer_front, node_front->out_waiting, &num_edges_front, &cap_buffer_front);
             node_front = node_front->out_waiting->end_node;
         }
-        add_trainset_to_edge(sol, trainset, node_front->out_subcon);
         add_to_buffer(&buffer_front, node_front->out_subcon, &num_edges_front, &cap_buffer_front);
         node_front = node_front->out_subcon->end_node;
 
         while(node_back->in_subcon == NULL || node_back->in_subcon->id != back_move_edge_id) {
-            add_trainset_to_edge(sol, trainset, node_back->in_waiting);
-            add_to_buffer(&buffer_back, node_front->in_waiting, &num_edges_back, &cap_buffer_back);
+            add_to_buffer(&buffer_back, node_back->in_waiting, &num_edges_back, &cap_buffer_back);
             node_back = node_back->in_waiting->start_node;
         }
-        add_trainset_to_edge(sol, trainset, node_back->in_subcon);
-        add_to_buffer(&buffer_back, node_front->in_subcon, &num_edges_back, &cap_buffer_back);
+        add_to_buffer(&buffer_back, node_back->in_subcon, &num_edges_back, &cap_buffer_back);
         node_back = node_back->in_subcon->start_node;
     }
 
     while (node_front->id != node_back->id) {
-        add_trainset_to_edge(sol, trainset, node_front->out_waiting);
         add_to_buffer(&buffer_front, node_front->out_waiting, &num_edges_front, &cap_buffer_front);
         node_front = node_front->out_waiting->end_node;
     }
 
     for(int i = 0; i<num_edges_back; i++) {
-        add_to_buffer(&buffer_front, buffer_back[i], &num_edges_front, &cap_buffer_back);
+        add_to_buffer(&buffer_front, buffer_back[i], &num_edges_front, &cap_buffer_front);
     }
 
     free(buffer_back);
@@ -183,4 +187,28 @@ void add_train_two_side(Solution *sol, const Problem *problem, const Trainset *t
     if(num_edges != NULL) {
         *num_edges = num_edges_front;
     }
+}
+
+
+void add_train_array(Solution *sol, const Trainset *trainset, const Edge **edges, int num_edges) {
+    update_obj_add_ts(sol, trainset);
+    for (int i = 0; i < num_edges; ++i) {
+        if (edges[i] != NULL) {
+            add_trainset_to_edge(sol, trainset, edges[i]);
+        }
+    }
+}
+
+void remove_train_array(Solution *sol, const Trainset *trainset, const Edge **edges, int num_edges) {
+    update_obj_add_ts(sol, trainset);
+    for (int i = 0; i < num_edges; ++i) {
+        if(edges[i] != NULL) {
+            remove_trainset_from_edge(sol, trainset, edges[i]);
+        }
+    }
+}
+
+void change_train_array(Solution *sol, const Trainset *old_ts, const Trainset *new_ts, Edge **edges, int num_edges) {
+    remove_train_array(sol, old_ts, edges, num_edges);
+    add_train_array(sol, new_ts, edges, num_edges);
 }
