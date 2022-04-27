@@ -4,6 +4,7 @@
 #include "parse_config.h"
 #include "solution_modifier.h"
 #include "heuristics.h"
+#include "change_finder.h"
 
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
@@ -43,7 +44,7 @@ int main() {
             break;
         }
         printf("add a train beginning in %d\n", station_id);
-        find_train_two_side(&sol, &problem, &problem.trainset_types[0], &problem.stations[station_id],
+        find_train_two_side(&sol, &problem, &problem.stations[station_id],
                             &edges, &num_edges);
         add_train_array(&sol, &problem.trainset_types[0], edges, num_edges);
         printf("objective: %lld hard-objective: %lld\n", sol.objective, sol.hard_objective);
