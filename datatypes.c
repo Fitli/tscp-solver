@@ -15,7 +15,7 @@ void destroy_problem(Problem *problem) {
 
 int empty_solution(Problem *problem, Solution *sol) {
     sol->edge_solution = malloc(problem->num_edges * sizeof(EdgeSolution));
-    if (problem->edges == NULL) {
+    if (sol->edge_solution == NULL) {
         fprintf(stderr, "Allocation error.\n");
         return EXIT_FAILURE;
     }
