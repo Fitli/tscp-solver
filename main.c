@@ -5,6 +5,7 @@
 #include "solution_modifier.h"
 #include "heuristics.h"
 #include "change_finder.h"
+#include "test.h"
 
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
@@ -63,6 +64,11 @@ int main() {
         find_train_two_side(&sol, &problem, &problem.stations[station_id], num_conditions, front_conditions, back_conditions,
                             &edges, &num_edges);
         add_train_array(&sol, &problem.trainset_types[0], edges, num_edges);
+
+        if(!test_consistency(&problem, &sol)) {
+            break;
+        }
+
         printf("objective: %lld hard-objective: %lld\n", sol.objective, sol.hard_objective);
         int empty_subcons = 0;
         for (int j = 0; j < problem.num_edges; j++) {
