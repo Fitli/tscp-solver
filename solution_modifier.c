@@ -45,3 +45,28 @@ void change_train_array(Solution *sol, const Trainset *old_ts, const Trainset *n
     remove_train_array(sol, old_ts, edges, num_edges);
     add_train_array(sol, new_ts, edges, num_edges);
 }
+
+void move_to_other_subcon(Solution *sol, const Trainset *ts, Edge *old_edge, Edge *new_edge) {
+    remove_trainset_from_edge(sol, ts, old_edge);
+    add_trainset_to_edge(sol, ts, new_edge);
+    Node *node = old_edge->start_node;
+    while (node != new_edge->start_node) {
+        if(node->time < new_edge->start_node->time) {
+            add_trainset_to_edge(sol, ts, node->out_subcon);
+            node = node->out_subcon->end_node;
+        } else {
+            remove_trainset_from_edge(sol, ts, node->in_subcon);
+            node = node->in_subcon->start_node;
+        }
+    }
+    node = old_edge->end_node;
+    while (node != new_edge->end_node) {
+        if(node->time < new_edge->end_node->time) {
+            remove_trainset_from_edge(sol, ts, node->out_subcon);
+            node = node->out_subcon->end_node;
+        } else {
+            add_trainset_to_edge(sol, ts, node->in_subcon);
+            node = node->in_subcon->start_node;
+        }
+    }
+}

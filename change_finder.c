@@ -106,7 +106,8 @@ void find_train_two_side(Solution *sol, const Problem *problem, const Station *s
     Edge **buffer_front = malloc(cap_buffer_front * sizeof(Edge *));
     Edge **buffer_back = malloc(cap_buffer_back * sizeof(Edge *));
 
-
+    add_to_buffer(&buffer_front, station->source_edge, &num_edges_front, &cap_buffer_front);
+    add_to_buffer(&buffer_back, station->sink_edge, &num_edges_back, &cap_buffer_back);
 
     while (front_move_edge_id >= 0) {
         for (int i = 0; i < num_conds; i++) {
@@ -153,5 +154,69 @@ void find_train_two_side(Solution *sol, const Problem *problem, const Station *s
 
     if(num_edges != NULL) {
         *num_edges = num_edges_front;
+    }
+}
+
+void select_next_out_edge(const Solution *sol, const Node *node, EdgeCondition *out_e_cond,
+                          EdgeCondition *wait_e_cond, int *selected_edge_id) {
+    *selected_edge_id = -1;
+    while (node != NULL) {
+        if(node->out_subcon && eval_edge_condition(out_e_cond, node->out_subcon, sol->edge_solution)) {
+            *selected_edge_id = node->out_subcon->id;
+        }
+        if(eval_edge_condition(wait_e_cond, node->out_waiting, sol->edge_solution)) {
+            node = node->out_waiting->end_node;
+        }
+        else {
+            break;
+        }
+    }
+}
+
+void select_prev_out_edge(const Solution *sol, const Node *node, EdgeCondition *out_e_cond,
+                          EdgeCondition *wait_e_cond, int *selected_edge_id) {
+    *selected_edge_id = -1;
+    while (node != NULL) {
+        if(node->out_subcon && eval_edge_condition(out_e_cond, node->out_subcon, sol->edge_solution)) {
+            *selected_edge_id = node->out_subcon->id;
+        }
+        if(eval_edge_condition(wait_e_cond, node->in_waiting, sol->edge_solution)) {
+            node = node->in_waiting->start_node;
+        }
+        else {
+            break;
+        }
+    }
+}
+
+void select_next_in_edge(const Solution *sol, const Node *node, EdgeCondition *in_e_cond,
+                         EdgeCondition *wait_e_cond, int *selected_edge_id) {
+    *selected_edge_id = -1;
+    while (node != NULL) {
+        if(node->in_subcon && eval_edge_condition(in_e_cond, node->in_subcon, sol->edge_solution)) {
+            *selected_edge_id = node->in_subcon->id;
+        }
+        if(eval_edge_condition(wait_e_cond, node->out_waiting, sol->edge_solution)) {
+            node = node->out_waiting->end_node;
+        }
+        else {
+            break;
+        }
+    }
+}
+
+void select_prev_in_edge(const Solution *sol, const Node *node, EdgeCondition *in_e_cond,
+                         EdgeCondition *wait_e_cond, int *selected_edge_id) {
+    *selected_edge_id = -1;
+    while (node != NULL) {
+        if(node->in_subcon && eval_edge_condition(in_e_cond, node->in_subcon, sol->edge_solution)) {
+            *selected_edge_id = node->in_subcon->id;
+        }
+        if(eval_edge_condition(wait_e_cond, node->in_waiting, sol->edge_solution)) {
+            node = node->in_waiting->start_node;
+        }
+        else {
+            break;
+        }
     }
 }

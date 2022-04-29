@@ -12,4 +12,6 @@ void add_train_array(Solution *sol, const Trainset *trainset, const Edge **edges
 void remove_train_array(Solution *sol, const Trainset *trainset, const Edge **edges, int num_edges);
 
 void change_train_array(Solution *sol, const Trainset *old_ts, const Trainset *new_ts, Edge **edges, int num_edges);
+
+void move_to_other_subcon(Solution *sol, const Trainset *ts, Edge *old_edge, Edge *new_edge);
 #endif //TSCP_SOLVER_C_SOLUTION_MODIFIER_H
