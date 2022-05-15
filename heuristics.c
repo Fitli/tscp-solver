@@ -136,11 +136,28 @@ int edge_needs_more_ts(Edge *edge, EdgeSolution *sol, void *a_data) {
     return sol->capacity < edge->minimal_capacity;
 }
 
+int edge_enough_capacity(Edge *edge, EdgeSolution *sol, void *a_data) {
+    int capacity_change = 0;
+    if (a_data) {
+        capacity_change = *(int *) a_data;
+    }
+    return sol->capacity + capacity_change > edge->minimal_capacity;
+}
+
 int edge_any(Edge *edge, EdgeSolution *sol, void *a_data) {
     return 1;
 }
 
+int edge_none(Edge *edge, EdgeSolution *sol, void *a_data) {
+    return 0;
+}
+
 int edge_has_trainset(Edge *edge, EdgeSolution *sol, void *a_data) {
-    Trainset *ts = (Trainset *) a_data;
-    return sol->num_trainsets[ts->id] > 0;
+    int ts = *(int *) a_data;
+    return sol->num_trainsets[ts] > 0;
+}
+
+int edge_ends_in_station(Edge *edge, EdgeSolution *sol, void *a_data) {
+    int station = *(int *) a_data;
+    return edge->end_node->station->id == station;
 }

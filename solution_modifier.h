@@ -7,9 +7,9 @@
 
 #include "datatypes.h"
 
-void add_train_array(Solution *sol, const Trainset *trainset, const Edge **edges, int num_edges);
+void add_train_array(Solution *sol, const Trainset *trainset, Edge **edges, int num_edges);
 
-void remove_train_array(Solution *sol, const Trainset *trainset, const Edge **edges, int num_edges);
+void remove_train_array(Solution *sol, const Trainset *trainset, Edge **edges, int num_edges);
 
 void change_train_array(Solution *sol, const Trainset *old_ts, const Trainset *new_ts, Edge **edges, int num_edges);
 

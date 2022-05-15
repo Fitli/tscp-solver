@@ -23,7 +23,7 @@ void remove_trainset_from_edge(Solution *sol, const Trainset *ts, const Edge *ed
     else(fprintf(stderr, "Tried to remove trainset %d form edge %d, but it is not present.\n", ts->id, edge->id));
 }
 
-void add_train_array(Solution *sol, const Trainset *trainset, const Edge **edges, int num_edges) {
+void add_train_array(Solution *sol, const Trainset *trainset, Edge **edges, int num_edges) {
     update_obj_add_ts(sol, trainset);
     for (int i = 0; i < num_edges; ++i) {
         if (edges[i] != NULL) {
@@ -32,8 +32,8 @@ void add_train_array(Solution *sol, const Trainset *trainset, const Edge **edges
     }
 }
 
-void remove_train_array(Solution *sol, const Trainset *trainset, const Edge **edges, int num_edges) {
-    update_obj_add_ts(sol, trainset);
+void remove_train_array(Solution *sol, const Trainset *trainset, Edge **edges, int num_edges) {
+    update_obj_remove_ts(sol, trainset);
     for (int i = 0; i < num_edges; ++i) {
         if(edges[i] != NULL) {
             remove_trainset_from_edge(sol, trainset, edges[i]);
@@ -52,21 +52,21 @@ void move_to_other_subcon(Solution *sol, const Trainset *ts, Edge *old_edge, Edg
     Node *node = old_edge->start_node;
     while (node != new_edge->start_node) {
         if(node->time < new_edge->start_node->time) {
-            add_trainset_to_edge(sol, ts, node->out_subcon);
-            node = node->out_subcon->end_node;
+            add_trainset_to_edge(sol, ts, node->out_waiting);
+            node = node->out_waiting->end_node;
         } else {
-            remove_trainset_from_edge(sol, ts, node->in_subcon);
-            node = node->in_subcon->start_node;
+            remove_trainset_from_edge(sol, ts, node->in_waiting);
+            node = node->in_waiting->start_node;
         }
     }
     node = old_edge->end_node;
     while (node != new_edge->end_node) {
         if(node->time < new_edge->end_node->time) {
-            remove_trainset_from_edge(sol, ts, node->out_subcon);
-            node = node->out_subcon->end_node;
+            remove_trainset_from_edge(sol, ts, node->out_waiting);
+            node = node->out_waiting->end_node;
         } else {
-            add_trainset_to_edge(sol, ts, node->in_subcon);
-            node = node->in_subcon->start_node;
+            add_trainset_to_edge(sol, ts, node->in_waiting);
+            node = node->in_waiting->start_node;
         }
     }
 }

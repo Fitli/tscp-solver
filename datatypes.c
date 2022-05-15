@@ -30,6 +30,16 @@ int empty_solution(Problem *problem, Solution *sol) {
     recalculate_objective(sol, problem);
 }
 
+void copy_solution(Problem *problem, Solution *orig_sol, Solution *dest_sol) {
+    dest_sol->objective = orig_sol->objective;
+    for(int edge_id = 0; edge_id < problem->num_edges; edge_id++) {
+        dest_sol->edge_solution[edge_id].capacity = orig_sol->edge_solution[edge_id].capacity;
+        for(int ts_id = 0; ts_id < problem->num_trainset_types; ts_id++) {
+            dest_sol->edge_solution[edge_id].num_trainsets[ts_id] = orig_sol->edge_solution[edge_id].num_trainsets[ts_id];
+        }
+    }
+}
+
 void destroy_solution(Problem *problem, Solution *sol) {
     for(int i = 0; i < problem->num_edges; i++) {
         free(sol->edge_solution[i].num_trainsets);

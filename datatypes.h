@@ -106,12 +106,12 @@ typedef struct EdgeSolution EdgeSolution;
 struct Solution {
     EdgeSolution *edge_solution;
     long long int objective;
-    long long int hard_objective;
 };
 typedef struct Solution Solution;
 
 void destroy_problem(Problem *problem);
 int empty_solution(Problem *problem, Solution *sol);
+void copy_solution(Problem *problem, Solution *orig_sol, Solution *dest_sol);
 void destroy_solution(Problem *problem, Solution *sol);
 
 #endif //TSCP_SOLVER_C_DATATYPES_H

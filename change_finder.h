@@ -18,8 +18,8 @@
  *      edges - output parameter where will be stored an array of edges with the trainset
  *      num_edges - output parameter where will be stored the number of edges with the trainset
  */
-void find_train_two_side(Solution *sol, const Problem *problem, const Station *station, int num_conds,
-                         EdgeCondition **front_conditions, EdgeCondition **back_conditions,
+int find_train_two_side(Solution *sol, const Problem *problem, const Station *station, int num_conds,
+                         EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
                          Edge ***edges, int *num_edges);
 
 void select_next_out_edge(const Solution *sol, const Node *node, EdgeCondition *out_e_cond,

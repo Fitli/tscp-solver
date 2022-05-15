@@ -24,10 +24,13 @@ void free_edge_conditions(EdgeCondition *cond);
 
 int edge_is_empty(Edge *edge, EdgeSolution *sol, void *a_data);
 int edge_needs_more_ts(Edge *edge, EdgeSolution *sol, void *a_data);
+int edge_enough_capacity(Edge *edge, EdgeSolution *sol, void *a_data);
 int edge_any(Edge *edge, EdgeSolution *sol, void *a_data);
+int edge_none(Edge *edge, EdgeSolution *sol, void *a_data);
 /*
  * True if there is at least 1 trainset of given type on this edge. a_data is the trainset tupe.
  */
 int edge_has_trainset(Edge *edge, EdgeSolution *sol, void *a_data);
+int edge_ends_in_station(Edge *edge, EdgeSolution *sol, void *a_data);
 
 #endif //TSCP_SOLVER_HEURISTICS_H

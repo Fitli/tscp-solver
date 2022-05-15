@@ -7,11 +7,10 @@
 #include "datatypes.h"
 
 //TODO zadefinovat na lepším místě
-#define CAPACITY_PENALTY 1
+#define CAPACITY_PENALTY 100000000000000
 
 void recalculate_objective(Solution *sol, Problem *problem) {
     sol->objective = 0;
-    sol->hard_objective = 0;
     for (int ed_id = 0; ed_id < problem->num_edges; ed_id++) {
         struct Edge *edge = &problem->edges[ed_id];
         EdgeSolution *edge_sol = &sol->edge_solution[ed_id];
@@ -27,7 +26,7 @@ void recalculate_objective(Solution *sol, Problem *problem) {
         }
 
         if(edge_sol->capacity < edge->minimal_capacity) {
-            sol->hard_objective -= CAPACITY_PENALTY * (edge->minimal_capacity - edge_sol->capacity);
+            sol->objective -= CAPACITY_PENALTY * (edge->minimal_capacity - edge_sol->capacity);
         }
     }
 }
@@ -45,10 +44,13 @@ void update_obj_add_ts_to_edge(Solution *sol, const Trainset *ts, const Edge *ed
         return;
     }
     if(old_edge_capacity + ts->seats < edge->minimal_capacity) {
-        sol->hard_objective += ts->seats * CAPACITY_PENALTY;
+        sol->objective += ts->seats * CAPACITY_PENALTY;
         return;
     }
-    sol->hard_objective += (edge->minimal_capacity - old_edge_capacity) * CAPACITY_PENALTY;
+    if (old_edge_capacity > edge->minimal_capacity) {
+        return;
+    }
+    sol->objective += (edge->minimal_capacity - old_edge_capacity) * CAPACITY_PENALTY;
 }
 
 /*
@@ -60,7 +62,7 @@ void update_obj_remove_ts_from_edge(Solution *sol, const Trainset *ts, const Edg
 
     int old_edge_capacity = sol->edge_solution[edge->id].capacity;
     if(old_edge_capacity - ts->seats < edge->minimal_capacity) {
-        sol->hard_objective -= (edge->minimal_capacity - (old_edge_capacity - ts->seats)) * CAPACITY_PENALTY;
+        sol->objective -= (edge->minimal_capacity - (old_edge_capacity - ts->seats)) * CAPACITY_PENALTY;
     }
 }
 
@@ -75,5 +77,5 @@ void update_obj_add_ts(Solution *sol, const Trainset *ts) {
  * Update solution objective function after removing whole trainset from the system
  */
 void update_obj_remove_ts(Solution *sol, const Trainset *ts) {
-    sol->objective -= ts->investment;
+    sol->objective += ts->investment;
 }
