@@ -6,6 +6,8 @@
 #include "heuristics.h"
 #include "change_finder.h"
 #include "test.h"
+#include "actions.h"
+#include "dot_printer.h"
 
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
@@ -23,15 +25,49 @@ void print_in_out(Problem *problem) {
     }
 }
 
+void do_random_action(Problem *problem, Solution *sol) {
+    int r = rand() % 4;
+    int rand_st = rand() % problem->num_stations;
+    int rand_edge = rand() % problem->num_edges;
+    int rand_ts = rand() % problem->num_trainset_types;
+    int rand_ts2 = rand() % problem->num_trainset_types;
+    switch(r) {
+        case 0:
+            printf("add train\n");
+            act_add_train_later(sol, problem, rand_st);
+            return;
+        case 1:
+            printf("remove train\n");
+            act_remove_train(sol, problem, rand_st, rand_ts);
+            return;
+        case 2:
+            printf("remove waiting train\n");
+            act_remove_waiting_train(sol, problem, rand_st, rand_ts);
+            return;
+        case 3:
+            printf("change train\n");
+            act_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2);
+            return;
+        case 4:
+            printf("move edge back\n");
+            act_move_edge_back(sol, problem, rand_edge, rand_ts);
+            return;
+        case 5:
+            printf("move edge front\n");
+            act_move_edge_front(sol, problem, rand_edge, rand_ts);
+            return;
+    }
+}
+
 int main() {
     Problem problem;
     parse("../../small_data.cfg", &problem);
     Solution sol;
+    char filename[255];
+    char title[255];
 
     empty_solution(&problem, &sol);
-    printf("objective: %lld hard-objective: %lld\n", sol.objective, sol.hard_objective);
-    Edge **edges;
-    int num_edges;
+    printf("objective: %lld\n", sol.objective);
     for(int i = 0; i < 1000; i++) {
         printf("iteration %d:\n", i);
         int station_id = -1;
@@ -46,30 +82,16 @@ int main() {
         }
         printf("add a train beginning in %d\n", station_id);
 
-        int num_conditions = 5;
-        EdgeCondition *front_conditions[5];
-        front_conditions[0] = create_edge_condition(&edge_is_empty, NULL, NULL);
-        front_conditions[1] = create_edge_condition(&edge_is_empty, NULL, NULL);
-        front_conditions[2] = create_edge_condition(&edge_needs_more_ts, NULL, NULL);
-        front_conditions[3] = create_edge_condition(&edge_is_empty, NULL, NULL);
-        front_conditions[4] = create_edge_condition(&edge_any, NULL, NULL);
-
-        EdgeCondition *back_conditions[5];
-        back_conditions[0] = create_edge_condition(&edge_is_empty, NULL, NULL);
-        back_conditions[1] = create_edge_condition(&edge_needs_more_ts, NULL, NULL);
-        back_conditions[2] = create_edge_condition(&edge_is_empty, NULL, NULL);
-        back_conditions[3] = create_edge_condition(&edge_any, NULL, NULL);
-        back_conditions[4] = create_edge_condition(&edge_is_empty, NULL, NULL);
-
-        find_train_two_side(&sol, &problem, &problem.stations[station_id], num_conditions, front_conditions, back_conditions,
-                            &edges, &num_edges);
-        add_train_array(&sol, &problem.trainset_types[0], edges, num_edges);
+        act_add_train_to_empty(&sol, &problem, station_id);
+        sprintf(filename, "dot/init%03d.dot", i);
+        sprintf(title, "initial adding to %d", station_id);
+        print_problem(&problem, &sol, filename, title);
 
         if(!test_consistency(&problem, &sol)) {
             break;
         }
 
-        printf("objective: %lld hard-objective: %lld\n", sol.objective, sol.hard_objective);
+        printf("objective: %lld\n", sol.objective);
         int empty_subcons = 0;
         for (int j = 0; j < problem.num_edges; j++) {
             if(problem.edges[j].type == SUBCONNECTION && sol.edge_solution[j].capacity == 0) {
@@ -80,11 +102,40 @@ int main() {
             }
         }
         printf("num_empty = %d\n", empty_subcons);
-        free(edges);
     }
 
+    int counter = 1000;
+    int iteration = 0;
+    Solution new_sol;
+    empty_solution(&problem, &new_sol);
+    while(counter > 0) {
+        copy_solution(&problem, &sol, &new_sol);
+        do_random_action(&problem, &new_sol);
+        if(new_sol.objective > sol.objective) {
+            copy_solution(&problem, &new_sol, &sol);
+            counter = 1000;
+            printf("objective: %lld\n", sol.objective);
+            sprintf(filename, "dot/update%04d.dot", iteration);
+            sprintf(title, "objective %lld, accepting", sol.objective);
+            print_problem(&problem, &sol, filename, title);
+            if(!test_consistency(&problem, &sol)) {
+                printf("unconsistent\n");
+                break;
+            }
+        }
+        else {
+            counter--;
+            sprintf(filename, "dot/update%04d.dot", iteration);
+            sprintf(title, "objective %lld, not accepting", new_sol.objective);
+            //print_problem(&problem, &new_sol, filename, title);
+        }
+        iteration++;
+    }
+
+    print_problem(&problem, &sol, "dot/solution.dot", "final");
 
     destroy_solution(&problem, &sol);
+    destroy_solution(&problem, &new_sol);
     destroy_problem(&problem);
     return 0;
 }
