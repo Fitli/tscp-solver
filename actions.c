@@ -158,7 +158,6 @@ void act_remove_waiting_train(Solution *sol, Problem *problem, int station_id, i
         free(edges);
 }
 
-// TODO: Tohle kontroluje přítomnost vlaků jinde, než je potřeba, důležitá je pro nás cílová stanice
 void act_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id) {
     if(problem->edges[edge_id].type != SUBCONNECTION) {
         return;
