@@ -9,6 +9,8 @@
 #include "actions.h"
 #include "dot_printer.h"
 
+#define TO_DOT 0
+
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
         printf("%d:", i);
@@ -26,7 +28,7 @@ void print_in_out(Problem *problem) {
 }
 
 void do_random_action(Problem *problem, Solution *sol) {
-    int r = rand() % 4;
+    int r = rand() % 6;
     int rand_st = rand() % problem->num_stations;
     int rand_edge = rand() % problem->num_edges;
     int rand_ts = rand() % problem->num_trainset_types;
@@ -83,9 +85,12 @@ int main() {
         printf("add a train beginning in %d\n", station_id);
 
         act_add_train_to_empty(&sol, &problem, station_id);
-        sprintf(filename, "dot/init%03d.dot", i);
-        sprintf(title, "initial adding to %d", station_id);
-        print_problem(&problem, &sol, filename, title);
+
+        if(TO_DOT) {
+            sprintf(filename, "dot/init%03d.dot", i);
+            sprintf(title, "initial adding to %d", station_id);
+            print_problem(&problem, &sol, filename, title);
+        }
 
         if(!test_consistency(&problem, &sol)) {
             break;
@@ -111,28 +116,33 @@ int main() {
     while(counter > 0) {
         copy_solution(&problem, &sol, &new_sol);
         do_random_action(&problem, &new_sol);
+        if(!test_consistency(&problem, &new_sol)) {
+            printf("unconsistent\n");
+            break;
+        }
         if(new_sol.objective > sol.objective) {
             copy_solution(&problem, &new_sol, &sol);
             counter = 1000;
             printf("objective: %lld\n", sol.objective);
-            sprintf(filename, "dot/update%04d.dot", iteration);
-            sprintf(title, "objective %lld, accepting", sol.objective);
-            print_problem(&problem, &sol, filename, title);
-            if(!test_consistency(&problem, &sol)) {
-                printf("unconsistent\n");
-                break;
+            if(TO_DOT) {
+                sprintf(filename, "dot/update%04d.dot", iteration);
+                sprintf(title, "objective %lld, accepting", sol.objective);
+                print_problem(&problem, &sol, filename, title);
             }
         }
         else {
             counter--;
-            sprintf(filename, "dot/update%04d.dot", iteration);
-            sprintf(title, "objective %lld, not accepting", new_sol.objective);
-            //print_problem(&problem, &new_sol, filename, title);
+            if(TO_DOT) {
+                sprintf(filename, "dot/update%04d.dot", iteration);
+                sprintf(title, "objective %lld, not accepting", new_sol.objective);
+                //print_problem(&problem, &new_sol, filename, title);
+            }
         }
         iteration++;
     }
 
-    print_problem(&problem, &sol, "dot/solution.dot", "final");
+    if(TO_DOT)
+        print_problem(&problem, &sol, "dot/solution.dot", "final");
 
     destroy_solution(&problem, &sol);
     destroy_solution(&problem, &new_sol);

@@ -32,5 +32,6 @@ int edge_none(Edge *edge, EdgeSolution *sol, void *a_data);
  */
 int edge_has_trainset(Edge *edge, EdgeSolution *sol, void *a_data);
 int edge_ends_in_station(Edge *edge, EdgeSolution *sol, void *a_data);
+int edge_start_in_station(Edge *edge, EdgeSolution *sol, void *a_data);
 
 #endif //TSCP_SOLVER_HEURISTICS_H

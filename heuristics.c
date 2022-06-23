@@ -161,3 +161,8 @@ int edge_ends_in_station(Edge *edge, EdgeSolution *sol, void *a_data) {
     int station = *(int *) a_data;
     return edge->end_node->station->id == station;
 }
+
+int edge_start_in_station(Edge *edge, EdgeSolution *sol, void *a_data) {
+    int station = *(int *) a_data;
+    return edge->start_node->station->id == station;
+}

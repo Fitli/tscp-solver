@@ -69,8 +69,8 @@ void act_add_train_later(Solution *sol, Problem *problem, int station_id) {
 }
 
 void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id) {
-    Edge **edges;
-    int num_edges;
+    Edge **edges = NULL;
+    int num_edges = 0;
 
     int capacity_change = problem->trainset_types[new_ts_id].seats - problem->trainset_types[old_ts_id].seats;
 
@@ -102,12 +102,13 @@ void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, 
         change_train_array(sol, &problem->trainset_types[old_ts_id], &problem->trainset_types[new_ts_id], edges, num_edges);
     }
 
-    free(edges);
+    if(edges)
+        free(edges);
 }
 
 void act_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
-    Edge **edges;
-    int num_edges;
+    Edge **edges = NULL;
+    int num_edges = 0;
 
     int capacity_change = -1 * problem->trainset_types[ts_id].seats;
 
@@ -131,8 +132,8 @@ void act_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id
 }
 
 void act_remove_waiting_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
-    Edge **edges;
-    int num_edges;
+    Edge **edges = NULL;
+    int num_edges = 0;
 
     int capacity_change = -1 * problem->trainset_types[ts_id].seats;
 
@@ -153,25 +154,43 @@ void act_remove_waiting_train(Solution *sol, Problem *problem, int station_id, i
 
     free_edge_conditions(has_ts_cond);
     free_edge_conditions(none_cond);
-    free(edges);
+    if(edges != NULL)
+        free(edges);
 }
 
+// TODO: Tohle kontroluje přítomnost vlaků jinde, než je potřeba, důležitá je pro nás cílová stanice
 void act_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+    if(problem->edges[edge_id].type != SUBCONNECTION) {
+        return;
+    }
+
     EdgeCondition *wait_e_cond = create_edge_condition(&edge_has_trainset, &ts_id, NULL);
-    int end_station_id = problem->edges[edge_id].end_node->station->id;
-    EdgeCondition *out_e_cond = create_edge_condition(&edge_ends_in_station, &end_station_id, NULL);
+    int start_station_id = problem->edges[edge_id].start_node->station->id;
+    EdgeCondition *in_e_cond = create_edge_condition(&edge_start_in_station, &start_station_id, NULL);
     int selected_edge_id;
-    select_next_out_edge(sol, problem->edges[edge_id].start_node->out_waiting->end_node, out_e_cond,
+    Edge *out_waiting = problem->edges[edge_id].end_node->out_waiting;
+    if(out_waiting->type == SINK_EDGE || !eval_edge_condition(wait_e_cond, out_waiting, &sol->edge_solution[out_waiting->id])) {
+        return;
+    }
+    select_next_in_edge(sol, problem->edges[edge_id].start_node->out_waiting->end_node, in_e_cond,
             wait_e_cond, &selected_edge_id);
     if(selected_edge_id >= 0)
         move_to_other_subcon(sol, &problem->trainset_types[ts_id], &problem->edges[edge_id], &problem->edges[selected_edge_id]);
 }
 
 void act_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+    if(problem->edges[edge_id].type != SUBCONNECTION) {
+        return;
+    }
+
     EdgeCondition *wait_e_cond = create_edge_condition(&edge_has_trainset, &ts_id, NULL);
     int end_station_id = problem->edges[edge_id].end_node->station->id;
     EdgeCondition *out_e_cond = create_edge_condition(&edge_ends_in_station, &end_station_id, NULL);
     int selected_edge_id;
+    Edge *in_waiting = problem->edges[edge_id].start_node->in_waiting;
+    if(in_waiting->type == SOURCE_EDGE || !eval_edge_condition(wait_e_cond, in_waiting, &sol->edge_solution[in_waiting->id])) {
+        return;
+    }
     select_prev_out_edge(sol, problem->edges[edge_id].start_node->in_waiting->start_node, out_e_cond,
                          wait_e_cond, &selected_edge_id);
     if(selected_edge_id >= 0)
