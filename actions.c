@@ -30,8 +30,9 @@ void act_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     back_conditions[3] = NULL;
     back_conditions[4] = cond_empty;
 
-    find_train_two_side(sol, problem, &problem->stations[station_id], num_conditions, front_conditions, back_conditions, NULL,
-                        &edges, &num_edges);
+    find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
+                          back_conditions, NULL,
+                          &edges, &num_edges);
     add_train_array(sol, &problem->trainset_types[0], edges, num_edges);
 
     free_edge_conditions(cond_empty);
@@ -59,8 +60,9 @@ void act_add_train_later(Solution *sol, Problem *problem, int station_id) {
     back_conditions[2] = NULL;
     back_conditions[3] = NULL;
 
-    find_train_two_side(sol, problem, &problem->stations[station_id], num_conditions, front_conditions, back_conditions, NULL,
-                        &edges, &num_edges);
+    find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
+                          back_conditions, NULL,
+                          &edges, &num_edges);
     add_train_array(sol, &problem->trainset_types[0], edges, num_edges);
 
     free_edge_conditions(cond_empty);
@@ -68,13 +70,17 @@ void act_add_train_later(Solution *sol, Problem *problem, int station_id) {
     free(edges);
 }
 
-void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id) {
+void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
     Edge **edges = NULL;
     int num_edges = 0;
 
     int capacity_change = problem->trainset_types[new_ts_id].seats - problem->trainset_types[old_ts_id].seats;
 
-    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, &old_ts_id, NULL);
+    int a_data[2];
+    a_data[0] = old_ts_id;
+    a_data[1] = old_ts_amount;
+
+    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, &a_data, NULL);
     EdgeCondition *has_ts_and_capacity_cond = create_edge_condition(&edge_enough_capacity, &capacity_change, has_ts_cond);
     EdgeCondition *has_ts_and_needs_and_capacity_cond = create_edge_condition(&edge_needs_more_ts, NULL, has_ts_and_capacity_cond);
 
@@ -97,9 +103,10 @@ void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, 
     back_conditions[5] = has_ts_and_capacity_cond;
     back_conditions[6] = has_ts_cond;
 
-    if (find_train_two_side(sol, problem, &problem->stations[station_id], num_conditions, front_conditions, back_conditions, has_ts_cond,
-                        &edges, &num_edges)) {
-        change_train_array(sol, &problem->trainset_types[old_ts_id], &problem->trainset_types[new_ts_id], edges, num_edges);
+    if (find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
+                              back_conditions, has_ts_cond,
+                              &edges, &num_edges)) {
+        change_train_array(sol, &problem->trainset_types[old_ts_id], &problem->trainset_types[new_ts_id], old_ts_amount, new_ts_amount, edges, num_edges);
     }
 
     if(edges)
@@ -112,7 +119,11 @@ void act_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id
 
     int capacity_change = -1 * problem->trainset_types[ts_id].seats;
 
-    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, &ts_id, NULL);
+    int a_data[2];
+    a_data[0] = ts_id;
+    a_data[1] = 1;
+
+    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
     EdgeCondition *has_ts_and_capacity_cond = create_edge_condition(&edge_enough_capacity, &capacity_change, has_ts_cond);
 
     int num_conditions = 1;
@@ -122,8 +133,9 @@ void act_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id
     EdgeCondition *back_conditions[4];
     back_conditions[0] = has_ts_and_capacity_cond;
 
-    if (find_train_two_side(sol, problem, &problem->stations[station_id], num_conditions, front_conditions, back_conditions, has_ts_cond,
-                        &edges, &num_edges)) {
+    if (find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
+                              back_conditions, has_ts_cond,
+                              &edges, &num_edges)) {
         remove_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
     }
 
@@ -135,9 +147,11 @@ void act_remove_waiting_train(Solution *sol, Problem *problem, int station_id, i
     Edge **edges = NULL;
     int num_edges = 0;
 
-    int capacity_change = -1 * problem->trainset_types[ts_id].seats;
+    int a_data[2];
+    a_data[0] = ts_id;
+    a_data[1] = 1;
 
-    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, &ts_id, NULL);
+    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
     EdgeCondition *none_cond = create_edge_condition(&edge_none, NULL, NULL);
 
     int num_conditions = 1;
@@ -147,8 +161,9 @@ void act_remove_waiting_train(Solution *sol, Problem *problem, int station_id, i
     EdgeCondition *back_conditions[4];
     back_conditions[0] = none_cond;
 
-    if (find_train_two_side(sol, problem, &problem->stations[station_id], num_conditions, front_conditions, back_conditions, has_ts_cond,
-                            &edges, &num_edges)) {
+    if (find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
+                              back_conditions, has_ts_cond,
+                              &edges, &num_edges)) {
         remove_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
     }
 
@@ -163,7 +178,15 @@ void act_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id)
         return;
     }
 
-    EdgeCondition *wait_e_cond = create_edge_condition(&edge_has_trainset, &ts_id, NULL);
+    if(sol->edge_solution[edge_id].num_trainsets[ts_id] == 0) {
+        return;
+    }
+
+    int a_data[2];
+    a_data[0] = ts_id;
+    a_data[1] = 1;
+
+    EdgeCondition *wait_e_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
     int start_station_id = problem->edges[edge_id].start_node->station->id;
     EdgeCondition *in_e_cond = create_edge_condition(&edge_start_in_station, &start_station_id, NULL);
     int selected_edge_id;
@@ -182,7 +205,15 @@ void act_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id
         return;
     }
 
-    EdgeCondition *wait_e_cond = create_edge_condition(&edge_has_trainset, &ts_id, NULL);
+    if(sol->edge_solution[edge_id].num_trainsets[ts_id] == 0) {
+        return;
+    }
+
+    int a_data[2];
+    a_data[0] = ts_id;
+    a_data[1] = 1;
+
+    EdgeCondition *wait_e_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
     int end_station_id = problem->edges[edge_id].end_node->station->id;
     EdgeCondition *out_e_cond = create_edge_condition(&edge_ends_in_station, &end_station_id, NULL);
     int selected_edge_id;

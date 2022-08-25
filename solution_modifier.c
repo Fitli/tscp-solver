@@ -41,9 +41,13 @@ void remove_train_array(Solution *sol, const Trainset *trainset, Edge **edges, i
     }
 }
 
-void change_train_array(Solution *sol, const Trainset *old_ts, const Trainset *new_ts, Edge **edges, int num_edges) {
-    remove_train_array(sol, old_ts, edges, num_edges);
-    add_train_array(sol, new_ts, edges, num_edges);
+void change_train_array(Solution *sol, const Trainset *old_ts, const Trainset *new_ts, int old_ts_amount, int new_ts_amount, Edge **edges, int num_edges) {
+    for(int i = 0; i < old_ts_amount; i++) {
+        remove_train_array(sol, old_ts, edges, num_edges);
+    }
+    for(int i = 0; i < new_ts_amount; i++) {
+        add_train_array(sol, new_ts, edges, num_edges);
+    }
 }
 
 void move_to_other_subcon(Solution *sol, const Trainset *ts, Edge *old_edge, Edge *new_edge) {

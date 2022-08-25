@@ -152,9 +152,10 @@ int edge_none(Edge *edge, EdgeSolution *sol, void *a_data) {
     return 0;
 }
 
-int edge_has_trainset(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_has_trainset(Edge *edge, EdgeSolution *sol, void *a_data) { // a_data is an two-member array containing id of trainset and the minimal amount
     int ts = *(int *) a_data;
-    return sol->num_trainsets[ts] > 0;
+    int amount = *((int *) a_data + 1);
+    return sol->num_trainsets[ts] >= amount;
 }
 
 int edge_ends_in_station(Edge *edge, EdgeSolution *sol, void *a_data) {

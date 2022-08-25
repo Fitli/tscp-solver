@@ -92,7 +92,7 @@ void select_front_back_subcons(const Solution *sol, const Problem *problem, cons
 }
 
 /*
- * Just a helper function for find_train_two_side. Adds an edge to a buffer
+ * Just a helper function for find_train_end_to_end. Adds an edge to a buffer
  */
 void add_to_buffer(Edge ***buffer, Edge *content, int *num_elems, int *buffer_cap) {
     if(*num_elems >= *buffer_cap) {
@@ -108,9 +108,9 @@ void add_to_buffer(Edge ***buffer, Edge *content, int *num_elems, int *buffer_ca
     (*buffer)[*num_elems] = content;
     (*num_elems)++;
 }
-int find_train_two_side(Solution *sol, const Problem *problem, const Station *station, int num_conds,
-                         EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
-                         Edge ***edges, int *num_edges) {
+int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *station, int num_conds,
+                          EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
+                          Edge ***edges, int *num_edges) {
     if(!eval_edge_condition(wait_condition, station->source_edge, &sol->edge_solution[station->source_edge->id]) ||
        !eval_edge_condition(wait_condition, station->sink_edge, &sol->edge_solution[station->sink_edge->id])) {
         return 0;
