@@ -22,6 +22,10 @@ int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *
                           EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
                           Edge ***edges, int *num_edges);
 
+int find_train_between_nodes(Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back, int num_conds,
+                             EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
+                             Edge ***edges, int *num_edges);
+
 void select_next_out_edge(const Solution *sol, const Node *node, EdgeCondition *out_e_cond,
                           EdgeCondition *wait_e_cond, int *selected_edge_id);
 

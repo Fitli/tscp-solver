@@ -118,6 +118,31 @@ int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *
 
     Node *node_front = station->source_edge->end_node;
     Node *node_back = station->sink_edge->start_node;
+
+    int res = find_train_between_nodes(sol, problem, node_front, node_back, num_conds, front_conditions, back_conditions, wait_condition, edges, num_edges);
+
+    // no train found, return
+    if(res == 0) {
+        return 0;
+    }
+
+    // some train found, add source and sink edge
+    Edge **all_edges = malloc((*num_edges + 2) * sizeof(Edge *));
+    all_edges[0] = station->source_edge;
+    for (int i = 0; i < *num_edges; ++i) {
+        all_edges[i+1] = (*edges)[i];
+    }
+    all_edges[*num_edges + 1] = station->sink_edge;
+    *num_edges += 2;
+    free(*edges);
+    *edges = all_edges;
+
+}
+
+int find_train_between_nodes(Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back, int num_conds,
+                          EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
+                          Edge ***edges, int *num_edges) {
+
     int front_move_edge_id = 0, back_move_edge_id = 0;
 
     int num_edges_front = 0;
@@ -126,9 +151,6 @@ int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *
     int cap_buffer_back = 128;
     Edge **buffer_front = malloc(cap_buffer_front * sizeof(Edge *));
     Edge **buffer_back = malloc(cap_buffer_back * sizeof(Edge *));
-
-    add_to_buffer(&buffer_front, station->source_edge, &num_edges_front, &cap_buffer_front);
-    add_to_buffer(&buffer_back, station->sink_edge, &num_edges_back, &cap_buffer_back);
 
     while (front_move_edge_id >= 0) {
         for (int i = 0; i < num_conds; i++) {
