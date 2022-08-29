@@ -17,8 +17,8 @@
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
         printf("%d:", i);
-        Node *node = problem->stations[i].source_edge->end_node;
-        while(node != NULL) {
+        Node *node = problem->stations[i].source_node->out_waiting->end_node;
+        while(node->out_waiting != NULL) {
             if(node->in_subcon != NULL) {
                 printf(" i%d", node->in_subcon->start_node->station->id);
             } else {

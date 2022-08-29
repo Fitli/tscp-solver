@@ -207,9 +207,10 @@ int create_nodes(config_t *cfg, Problem *problem) {
         return EXIT_FAILURE;
     }
 
-    problem->num_nodes = config_setting_length(in_nodes) + config_setting_length(out_nodes);
+    problem->num_inner_nodes = config_setting_length(in_nodes) + config_setting_length(out_nodes);
+    problem->num_nodes = problem->num_inner_nodes + problem->num_stations * 2; // inner nodes + source + sink nodes
 
-    // alocate space for edges
+    // alocate space for nodes
     problem->nodes = malloc(problem->num_nodes * sizeof(Node));
     if (problem->nodes == NULL) {
         fprintf(stderr, "Allocation error.\n");
@@ -279,7 +280,7 @@ int assign_stations(Problem *problem) {
     for(int i = 0; i < problem->num_stations; i++) {
         printf("stanice %d:\n", i);
         Station *station = &(problem->stations[i]);
-        Node *node = station->source_edge->end_node;
+        Node *node = station->source_node;
         time_t time = 0;
         do {
             printf("n%d ", node->id);
@@ -289,9 +290,9 @@ int assign_stations(Problem *problem) {
             printf("e%d ", node->out_waiting->id);
             node = node->out_waiting->end_node;
         }
-        while (node->out_waiting->end_node != NULL && node->out_waiting->type != SINK_EDGE);
+        while (node->out_waiting != NULL);
         printf("\n");
-        if (node->out_waiting != station->sink_edge) {
+        if (node != station->sink_node) {
             fprintf(stderr, "Unconsistent waiting nodes.\n");
             return EXIT_FAILURE;
         }
@@ -326,15 +327,17 @@ int create_stations(config_t *cfg, Problem *problem) {
 }
 
 void set_source_edge(Problem *problem, int st_idx, int edge_idx) {
-    problem->stations[st_idx].source_edge = &problem->edges[edge_idx - 1];
+    problem->stations[st_idx].source_node = &problem->nodes[problem->num_inner_nodes + st_idx * 2];
     problem->edges[edge_idx-1].type = SOURCE_EDGE;
-    problem->edges[edge_idx-1].start_node = NULL;
+    problem->stations[st_idx].source_node->out_waiting = &(problem->edges[edge_idx-1]);
+    problem->edges[edge_idx-1].start_node = problem->stations[st_idx].source_node;
 }
 
 void set_sink_edge(Problem *problem, int st_idx, int edge_idx) {
-    problem->stations[st_idx].sink_edge = &problem->edges[edge_idx - 1];
+    problem->stations[st_idx].sink_node = &problem->nodes[problem->num_inner_nodes + st_idx * 2 + 1];
     problem->edges[edge_idx-1].type = SINK_EDGE;
-    problem->edges[edge_idx-1].end_node = NULL;
+    problem->stations[st_idx].sink_node->in_waiting = &(problem->edges[edge_idx-1]);
+    problem->edges[edge_idx-1].end_node = problem->stations[st_idx].sink_node;
 }
 
 int add_source_sink_edges(config_t *cfg, Problem *problem) {

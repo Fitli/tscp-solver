@@ -13,7 +13,7 @@
  */
 int count_empty_subcons_station(Problem *problem, Station *station, Solution *sol) {
     int result = 0;
-    Node *node = station->source_edge->end_node;
+    Node *node = station->source_node->out_waiting->end_node;
     while (1){
         EdgeSolution edge_sol;
         if (node->in_subcon != NULL) {
@@ -53,7 +53,7 @@ int select_station_max_empty_subcons(Problem *problem, Solution *solution) {
 int select_station_first_empty_departure(Problem *problem, Solution *solution) {
     Node *station_nodes[problem->num_stations];
     for(int i = 0; i<problem->num_stations; i++) {
-        station_nodes[i] = problem->stations[i].source_edge->end_node;
+        station_nodes[i] = problem->stations[i].source_node->out_waiting->end_node;
     }
     bool all_null = false;
     while(!all_null) {
@@ -76,13 +76,13 @@ int select_station_first_empty_departure(Problem *problem, Solution *solution) {
 int select_station_last_empty_arrival(Problem *problem, Solution *solution) {
     Node *station_nodes[problem->num_stations];
     for(int i = 0; i<problem->num_stations; i++) {
-        station_nodes[i] = problem->stations[i].sink_edge->start_node;
+        station_nodes[i] = problem->stations[i].sink_node->in_waiting->start_node;
     }
     bool all_null = false;
     while(!all_null) {
         all_null = true;
         for(int i = 0; i<problem->num_stations; i++) {
-            if(station_nodes[i] == NULL) {
+            if(station_nodes[i]->in_waiting == NULL) {
                 continue;
             }
             Edge *in_subcon = station_nodes[i]->in_subcon;

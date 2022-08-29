@@ -111,13 +111,9 @@ void add_to_buffer(Edge ***buffer, Edge *content, int *num_elems, int *buffer_ca
 int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *station, int num_conds,
                           EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
                           Edge ***edges, int *num_edges) {
-    if(!eval_edge_condition(wait_condition, station->source_edge, &sol->edge_solution[station->source_edge->id]) ||
-       !eval_edge_condition(wait_condition, station->sink_edge, &sol->edge_solution[station->sink_edge->id])) {
-        return 0;
-    }
 
-    Node *node_front = station->source_edge->end_node;
-    Node *node_back = station->sink_edge->start_node;
+    Node *node_front = station->source_node;
+    Node *node_back = station->sink_node;
 
     int res = find_train_between_nodes(sol, problem, node_front, node_back, num_conds, front_conditions, back_conditions, wait_condition, edges, num_edges);
 
@@ -125,17 +121,6 @@ int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *
     if(res == 0) {
         return 0;
     }
-
-    // some train found, add source and sink edge
-    Edge **all_edges = malloc((*num_edges + 2) * sizeof(Edge *));
-    all_edges[0] = station->source_edge;
-    for (int i = 0; i < *num_edges; ++i) {
-        all_edges[i+1] = (*edges)[i];
-    }
-    all_edges[*num_edges + 1] = station->sink_edge;
-    *num_edges += 2;
-    free(*edges);
-    *edges = all_edges;
 
 }
 
@@ -210,7 +195,7 @@ int find_train_between_nodes(Solution *sol, const Problem *problem, const Node *
 void select_next_out_edge(const Solution *sol, const Node *node, EdgeCondition *out_e_cond,
                           EdgeCondition *wait_e_cond, int *selected_edge_id) {
     *selected_edge_id = -1;
-    while (node != NULL) {
+    while (node->out_waiting != NULL) {
         if(node->out_subcon && eval_edge_condition(out_e_cond, node->out_subcon, &sol->edge_solution[node->out_subcon->id])) {
             *selected_edge_id = node->out_subcon->id;
             return;
@@ -227,7 +212,7 @@ void select_next_out_edge(const Solution *sol, const Node *node, EdgeCondition *
 void select_prev_out_edge(const Solution *sol, const Node *node, EdgeCondition *out_e_cond,
                           EdgeCondition *wait_e_cond, int *selected_edge_id) {
     *selected_edge_id = -1;
-    while (node != NULL) {
+    while (node->in_waiting != NULL) {
         if(node->out_subcon && eval_edge_condition(out_e_cond, node->out_subcon,  &sol->edge_solution[node->out_subcon->id])) {
             *selected_edge_id = node->out_subcon->id;
             return;
@@ -244,7 +229,7 @@ void select_prev_out_edge(const Solution *sol, const Node *node, EdgeCondition *
 void select_next_in_edge(const Solution *sol, const Node *node, EdgeCondition *in_e_cond,
                          EdgeCondition *wait_e_cond, int *selected_edge_id) {
     *selected_edge_id = -1;
-    while (node != NULL) {
+    while (node->out_waiting != NULL) {
         if(node->in_subcon && eval_edge_condition(in_e_cond, node->in_subcon, &sol->edge_solution[node->in_subcon->id])) {
             *selected_edge_id = node->in_subcon->id;
             return;
@@ -261,7 +246,7 @@ void select_next_in_edge(const Solution *sol, const Node *node, EdgeCondition *i
 void select_prev_in_edge(const Solution *sol, const Node *node, EdgeCondition *in_e_cond,
                          EdgeCondition *wait_e_cond, int *selected_edge_id) {
     *selected_edge_id = -1;
-    while (node != NULL) {
+    while (node->in_waiting != NULL) {
         if(node->in_subcon && eval_edge_condition(in_e_cond, node->in_subcon, &sol->edge_solution[node->in_subcon->id])) {
             *selected_edge_id = node->in_subcon->id;
             return;

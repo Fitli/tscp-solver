@@ -24,8 +24,8 @@ enum edge_type {
 struct Station {
     char name[256];
     int id;
-    Edge *source_edge;
-    Edge *sink_edge;
+    Node *source_node;
+    Node *sink_node;
 };
 
 struct Trainset {
@@ -79,6 +79,7 @@ struct Problem {
     int num_stations; //number of stations - without source and sink
     int num_edges;
     int num_nodes;
+    int num_inner_nodes;
     int num_conections;
     int num_trainset_types;
 
