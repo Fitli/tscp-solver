@@ -280,6 +280,11 @@ int assign_stations(Problem *problem) {
     for(int i = 0; i < problem->num_stations; i++) {
         printf("stanice %d:\n", i);
         Station *station = &(problem->stations[i]);
+
+        station->num_nodes = 0;
+        int node_cap = 128;
+        station->node_ids = malloc(node_cap*sizeof(int));
+
         Node *node = station->source_node;
         time_t time = 0;
         do {
@@ -288,6 +293,14 @@ int assign_stations(Problem *problem) {
             node->time = time;
             time++;
             printf("e%d ", node->out_waiting->id);
+
+            station->node_ids[station->num_nodes] = node->id;
+            station->num_nodes++;
+            if(station->num_nodes > node_cap) {
+                node_cap *= 2;
+                station->node_ids = realloc(station->node_ids, node_cap*sizeof(int));
+            }
+
             node = node->out_waiting->end_node;
         }
         while (node->out_waiting != NULL);
@@ -298,6 +311,9 @@ int assign_stations(Problem *problem) {
         }
         node->station = station;
         node->time = time;
+
+        station->node_ids[station->num_nodes] = node->id;
+        station->num_nodes++;
     }
     return EXIT_SUCCESS;
 }

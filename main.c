@@ -10,9 +10,9 @@
 #include "dot_printer.h"
 
 #define TO_DOT 1
-#define IMPROVE_RATIO 1//.00000000001
+#define IMPROVE_RATIO 1//.000000001
 #define NUM_LOCAL_CHANGES 1000
-#define NUM_RESTART_BEST 10
+#define NUM_RESTART_BEST 100
 
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
@@ -31,15 +31,19 @@ void print_in_out(Problem *problem) {
 }
 
 void do_random_action(Problem *problem, Solution *sol) {
-    int r = rand() % 8;
+    int r = rand() % 17;
     int rand_st = rand() % problem->num_stations;
     int rand_edge = rand() % problem->num_edges;
+    int rand_start_node_index = rand() % (problem->stations[rand_st].num_nodes - 1);
+    int rand_start_node = problem->stations[rand_st].node_ids[rand_start_node_index];
+    int rand_end_node_index = rand_start_node_index + 1 + rand() % (problem->stations[rand_st].num_nodes - rand_start_node_index - 1);
+    int rand_end_node = problem->stations[rand_st].node_ids[rand_end_node_index];
     int rand_ts = rand() % problem->num_trainset_types;
     int rand_ts2 = rand() % problem->num_trainset_types;
     switch(r) {
         case 0:
             printf("add train\n");
-            act_add_train_later(sol, problem, rand_st);
+            act_add_train_later(sol, problem, rand_st, rand_ts);
             return;
         case 1:
             printf("remove train\n");
@@ -68,6 +72,22 @@ void do_random_action(Problem *problem, Solution *sol) {
         case 7:
             printf("change train 1:2\n");
             act_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 1, 2);
+            return;
+        case 8:
+        case 9:
+        case 10:
+            printf("reschedule\n");
+            act_reschedule_w_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
+            return;
+        case 11:
+        case 12:
+        case 13:
+            printf("reschedule\n");
+            act_reschedule_n_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
+            return;
+        default:
+            printf("reschedule\n");
+            act_reschedule_n_w(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
     }
 }
@@ -163,7 +183,6 @@ int main() {
             //}
         }
         if(local_counter <= 0) {
-            printf("aaaa");
             copy_solution(&problem, &best_sol, &sol);
             back_to_best_counter--;
             local_counter = NUM_LOCAL_CHANGES;

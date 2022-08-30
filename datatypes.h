@@ -26,6 +26,8 @@ struct Station {
     int id;
     Node *source_node;
     Node *sink_node;
+    int num_nodes;
+    int *node_ids;
 };
 
 struct Trainset {

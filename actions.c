@@ -8,6 +8,10 @@
 #include "change_finder.h"
 #include "solution_modifier.h"
 
+int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+void insert_part_later(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+
 void act_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     Edge **edges;
     int num_edges;
@@ -40,7 +44,11 @@ void act_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     free(edges);
 }
 
-void act_add_train_later(Solution *sol, Problem *problem, int station_id) {
+void act_add_train_later(Solution *sol, Problem *problem, int station_id, int ts_id) {
+    insert_part_later(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
+}
+
+void insert_part_later(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     Edge **edges;
     int num_edges;
 
@@ -60,14 +68,30 @@ void act_add_train_later(Solution *sol, Problem *problem, int station_id) {
     back_conditions[2] = NULL;
     back_conditions[3] = NULL;
 
-    find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
+    find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
                           back_conditions, NULL,
                           &edges, &num_edges);
-    add_train_array(sol, &problem->trainset_types[0], edges, num_edges);
+    add_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
 
     free_edge_conditions(cond_empty);
     free_edge_conditions(cond_more_ts);
     free(edges);
+}
+
+void act_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+    Node *start_node = &problem->nodes[start_node_id];
+    Node *end_node = &problem->nodes[end_node_id];
+
+    int num_edges = end_node->time - start_node->time;
+    Edge *edges[num_edges];
+
+    Node *node = start_node;
+    for (int i = 0; i < num_edges; ++i) {
+        edges[i] = node->out_waiting;
+        node = node->out_waiting->end_node;
+    }
+
+    add_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
 }
 
 void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
@@ -114,8 +138,13 @@ void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, 
 }
 
 void act_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
+    destroy_part(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
+}
+
+int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     Edge **edges = NULL;
     int num_edges = 0;
+    int result = 0;
 
     int capacity_change = -1 * problem->trainset_types[ts_id].seats;
 
@@ -133,19 +162,41 @@ void act_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id
     EdgeCondition *back_conditions[4];
     back_conditions[0] = has_ts_and_capacity_cond;
 
-    if (find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
+    if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
                               back_conditions, has_ts_cond,
                               &edges, &num_edges)) {
         remove_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
+        result = 1;
     }
 
     free_edge_conditions(has_ts_and_capacity_cond);
     free(edges);
+    return result;
 }
 
 void act_remove_waiting_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
+    destroy_part_waiting(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
+}
+
+void act_reschedule_w_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+    if(destroy_part_waiting(sol, problem, start_node_id, end_node_id, ts_id))
+        insert_part_later(sol, problem, start_node_id, end_node_id, ts_id);
+}
+
+void act_reschedule_n_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+    if(destroy_part(sol, problem, start_node_id, end_node_id, ts_id))
+        insert_part_later(sol, problem, start_node_id, end_node_id, ts_id);
+}
+
+void act_reschedule_n_w(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+    if(destroy_part(sol, problem, start_node_id, end_node_id, ts_id))
+        act_insert_part_waiting(sol, problem, start_node_id, end_node_id, ts_id);
+}
+
+int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     Edge **edges = NULL;
     int num_edges = 0;
+    int result = 0;
 
     int a_data[2];
     a_data[0] = ts_id;
@@ -161,16 +212,18 @@ void act_remove_waiting_train(Solution *sol, Problem *problem, int station_id, i
     EdgeCondition *back_conditions[4];
     back_conditions[0] = none_cond;
 
-    if (find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
-                              back_conditions, has_ts_cond,
-                              &edges, &num_edges)) {
+    if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
+                              back_conditions, has_ts_cond, &edges, &num_edges)) {
         remove_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
+        result = 1;
     }
 
     free_edge_conditions(has_ts_cond);
     free_edge_conditions(none_cond);
     if(edges != NULL)
         free(edges);
+
+    return result;
 }
 
 void act_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id) {
