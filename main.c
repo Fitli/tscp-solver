@@ -12,7 +12,7 @@
 #define TO_DOT 1
 #define IMPROVE_RATIO 1//.000000001
 #define NUM_LOCAL_CHANGES 1000
-#define NUM_RESTART_BEST 100
+#define NUM_RESTART_BEST 10
 
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
@@ -85,6 +85,8 @@ void do_random_action(Problem *problem, Solution *sol) {
             printf("reschedule\n");
             act_reschedule_n_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
+        case 14:
+            act_add_train_to_empty(sol, problem, rand_st);
         default:
             printf("reschedule\n");
             act_reschedule_n_w(sol, problem, rand_start_node, rand_end_node, rand_ts);

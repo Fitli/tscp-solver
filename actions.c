@@ -37,7 +37,7 @@ void act_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
                           back_conditions, NULL,
                           &edges, &num_edges);
-    add_train_array(sol, &problem->trainset_types[0], edges, num_edges);
+    add_train_array(sol, problem, &problem->trainset_types[1], edges, num_edges);
 
     free_edge_conditions(cond_empty);
     free_edge_conditions(cond_more_ts);
@@ -71,7 +71,7 @@ void insert_part_later(Solution *sol, Problem *problem, int start_node_id, int e
     find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
                           back_conditions, NULL,
                           &edges, &num_edges);
-    add_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
+    add_train_array(sol, problem,  &problem->trainset_types[ts_id], edges, num_edges);
 
     free_edge_conditions(cond_empty);
     free_edge_conditions(cond_more_ts);
@@ -91,7 +91,7 @@ void act_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id,
         node = node->out_waiting->end_node;
     }
 
-    add_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
+    add_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
 }
 
 void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
@@ -130,7 +130,7 @@ void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, 
     if (find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
                               back_conditions, has_ts_cond,
                               &edges, &num_edges)) {
-        change_train_array(sol, &problem->trainset_types[old_ts_id], &problem->trainset_types[new_ts_id], old_ts_amount, new_ts_amount, edges, num_edges);
+        change_train_array(sol, problem, &problem->trainset_types[old_ts_id], &problem->trainset_types[new_ts_id], old_ts_amount, new_ts_amount, edges, num_edges);
     }
 
     if(edges)
@@ -165,7 +165,7 @@ int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_nod
     if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
                               back_conditions, has_ts_cond,
                               &edges, &num_edges)) {
-        remove_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
+        remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
         result = 1;
     }
 
@@ -214,7 +214,7 @@ int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int
 
     if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
                               back_conditions, has_ts_cond, &edges, &num_edges)) {
-        remove_train_array(sol, &problem->trainset_types[ts_id], edges, num_edges);
+        remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
         result = 1;
     }
 
@@ -250,7 +250,7 @@ void act_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id)
     select_next_in_edge(sol, problem->edges[edge_id].start_node->out_waiting->end_node, in_e_cond,
             wait_e_cond, &selected_edge_id);
     if(selected_edge_id >= 0)
-        move_to_other_subcon(sol, &problem->trainset_types[ts_id], &problem->edges[edge_id], &problem->edges[selected_edge_id]);
+        move_to_other_subcon(sol, problem, &problem->trainset_types[ts_id], &problem->edges[edge_id], &problem->edges[selected_edge_id]);
 }
 
 void act_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id) {
@@ -277,5 +277,5 @@ void act_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id
     select_prev_out_edge(sol, problem->edges[edge_id].start_node->in_waiting->start_node, out_e_cond,
                          wait_e_cond, &selected_edge_id);
     if(selected_edge_id >= 0)
-        move_to_other_subcon(sol, &problem->trainset_types[ts_id], &problem->edges[edge_id], &problem->edges[selected_edge_id]);
+        move_to_other_subcon(sol, problem, &problem->trainset_types[ts_id], &problem->edges[edge_id], &problem->edges[selected_edge_id]);
 }
