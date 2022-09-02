@@ -167,3 +167,12 @@ int edge_start_in_station(Edge *edge, EdgeSolution *sol, void *a_data) {
     int station = *(int *) a_data;
     return edge->start_node->station->id == station;
 }
+
+int edge_has_more_ts_than(Edge *edge, EdgeSolution *sol, void *a_data) {
+    int num = *(int *) a_data;
+    int n_ts = 0;
+    for (int i = 0; i < sizeof(sol->num_trainsets)/sizeof(int*); ++i) {
+        n_ts += sol->num_trainsets[i];
+    }
+    return n_ts > num;
+}

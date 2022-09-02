@@ -31,7 +31,7 @@ void print_in_out(Problem *problem) {
 }
 
 void do_random_action(Problem *problem, Solution *sol) {
-    int r = rand() % 17;
+    int r = rand() % 20;
     int rand_st = rand() % problem->num_stations;
     int rand_edge = rand() % problem->num_edges;
     int rand_start_node_index = rand() % (problem->stations[rand_st].num_nodes - 1);
@@ -86,7 +86,14 @@ void do_random_action(Problem *problem, Solution *sol) {
             act_reschedule_n_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
         case 14:
+            printf("add_to_epty\n");
             act_add_train_to_empty(sol, problem, rand_st);
+            return;
+        case 15:
+        case 16:
+            printf("remove with edge\n");
+            act_remove_train_with_edge(sol, problem, rand_edge, rand_ts);
+            return;
         default:
             printf("reschedule\n");
             act_reschedule_n_w(sol, problem, rand_start_node, rand_end_node, rand_ts);

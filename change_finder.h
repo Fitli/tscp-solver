@@ -38,4 +38,7 @@ void select_next_in_edge(const Solution *sol, const Node *node, EdgeCondition *i
 void select_prev_in_edge(const Solution *sol, const Node *node, EdgeCondition *in_e_cond,
                          EdgeCondition *wait_e_cond, int *selected_edge_id);
 
+int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge *edge, int num_conds,
+                                EdgeCondition **move_conditions, EdgeCondition *wait_condition,Edge ***edges, int *num_edges);
+
 #endif //TSCP_SOLVER_CHANGE_FINDER_H
