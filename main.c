@@ -170,7 +170,7 @@ int main() {
                 break;
             }
 
-            if(local_counter == 0 || new_sol.objective > best_new.objective) {
+            if(local_counter == 0 || new_sol.objective < best_new.objective) {
                 copy_solution(&problem, &new_sol, &best_new);
             }
 
@@ -261,13 +261,13 @@ int main2() {
             printf("unconsistent\n");
             break;
         }
-        if(new_sol.objective > best_sol.objective * IMPROVE_RATIO) {
+        if(new_sol.objective < best_sol.objective * IMPROVE_RATIO) {
             //if(new_sol.objective > sol.objective) { //vždy zlepšení
             copy_solution(&problem, &new_sol, &sol);
             //local_counter = 1000;
             printf("objective: %lld\n", sol.objective);
 
-            if(new_sol.objective > best_sol.objective) {
+            if(new_sol.objective < best_sol.objective) {
                 copy_solution(&problem, &new_sol, &best_sol);
                 back_to_best_counter = NUM_RESTART_BEST;
                 local_counter = NUM_LOCAL_CHANGES;
