@@ -10,9 +10,9 @@
 #include "dot_printer.h"
 
 #define TO_DOT 1
-#define IMPROVE_RATIO 1//.000000001
+#define IMPROVE_RATIO 1.001
 #define NUM_LOCAL_CHANGES 1000
-#define NUM_RESTART_BEST 10
+#define NUM_RESTART_BEST 100
 
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
@@ -76,32 +76,129 @@ void do_random_action(Problem *problem, Solution *sol) {
         case 8:
         case 9:
         case 10:
-            printf("reschedule\n");
+            printf("reschedule_w_l\n");
             act_reschedule_w_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
         case 11:
         case 12:
         case 13:
-            printf("reschedule\n");
+            printf("reschedule_n_l\n");
             act_reschedule_n_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
         case 14:
-            printf("add_to_epty\n");
+            printf("add_to_empty\n");
             act_add_train_to_empty(sol, problem, rand_st);
             return;
         case 15:
+            printf("add with edge\n");
+            act_add_train_with_edge(sol, problem, rand_edge, rand_ts);
+            return;
         case 16:
             printf("remove with edge\n");
             act_remove_train_with_edge(sol, problem, rand_edge, rand_ts);
             return;
         default:
-            printf("reschedule\n");
+            printf("reschedule_n_w\n");
             act_reschedule_n_w(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
     }
 }
 
 int main() {
+    srand(3);
+    Problem problem;
+    parse("../../small_data.cfg", &problem);
+    Solution sol;
+    char filename[255];
+    char title[255];
+
+    empty_solution(&problem, &sol);
+    printf("objective: %lld\n", sol.objective);
+    for(int i = 0; i < 1000; i++) {
+        printf("iteration %d:\n", i);
+        int station_id = -1;
+        if(i%2 == 0) {
+            station_id = select_station_first_empty_departure(&problem, &sol);
+        }else{
+            station_id = select_station_last_empty_arrival(&problem, &sol);
+        }
+
+        if(station_id == -1) {
+            break;
+        }
+        printf("add a train beginning in %d\n", station_id);
+
+        act_add_train_to_empty(&sol, &problem, station_id);
+
+        if(TO_DOT) {
+            sprintf(filename, "dot/init%03d.dot", i);
+            sprintf(title, "initial adding to %d", station_id);
+            print_problem(&problem, &sol, filename, title);
+        }
+
+        if(!test_consistency(&problem, &sol)) {
+            break;
+        }
+
+        printf("objective: %lld\n", sol.objective);
+        int empty_subcons = 0;
+        for (int j = 0; j < problem.num_edges; j++) {
+            if(problem.edges[j].type == SUBCONNECTION && sol.edge_solution[j].capacity == 0) {
+                empty_subcons++;
+                if(i > 998) {
+                    printf("st %d t %ld ->st %d t %ld \n", problem.edges[j].start_node->station->id, problem.edges[j].start_node->time, problem.edges[j].end_node->station->id, problem.edges[j].end_node->time);
+                }
+            }
+        }
+        printf("num_empty = %d\n", empty_subcons);
+    }
+
+    int local_counter = 0;
+    int iteration = 0;
+    Solution new_sol;
+    empty_solution(&problem, &new_sol);
+    Solution best_new;
+    empty_solution(&problem, &best_new);
+    while(iteration < NUM_RESTART_BEST) {
+        local_counter = 0;
+        while (local_counter < NUM_LOCAL_CHANGES) {
+            copy_solution(&problem, &sol, &new_sol);
+            do_random_action(&problem, &new_sol);
+
+            if(!test_consistency(&problem, &new_sol)) {
+                printf("unconsistent\n");
+                break;
+            }
+
+            if(local_counter == 0 || new_sol.objective > best_new.objective) {
+                copy_solution(&problem, &new_sol, &best_new);
+            }
+
+            local_counter++;
+        }
+
+        copy_solution(&problem, &best_new, &sol);
+        if(TO_DOT) {
+            sprintf(filename, "dot/update%04d.dot", iteration);
+            sprintf(title, "objective %lld, accepting", sol.objective);
+            print_problem(&problem, &sol, filename, title);
+        }
+        iteration++;
+    }
+
+    if(TO_DOT)
+        print_problem(&problem, &sol, "dot/solution.dot", "final");
+
+    printf("final objective: %lld\n", sol.objective);
+    destroy_solution(&problem, &sol);
+    destroy_solution(&problem, &new_sol);
+    destroy_problem(&problem);
+    return 0;
+}
+
+
+int main2() {
+    srand(3);
     Problem problem;
     parse("../../small_data.cfg", &problem);
     Solution sol;
@@ -165,7 +262,7 @@ int main() {
             break;
         }
         if(new_sol.objective > best_sol.objective * IMPROVE_RATIO) {
-        //if(new_sol.objective > sol.objective) { //vždy zlepšení
+            //if(new_sol.objective > sol.objective) { //vždy zlepšení
             copy_solution(&problem, &new_sol, &sol);
             //local_counter = 1000;
             printf("objective: %lld\n", sol.objective);
@@ -186,9 +283,9 @@ int main() {
         else {
             local_counter--;
             //if(TO_DOT) {
-                //sprintf(filename, "dot/update%04d.dot", iteration);
-                //sprintf(title, "objective %lld, not accepting", new_sol.objective);
-                //print_problem(&problem, &new_sol, filename, title);
+            //sprintf(filename, "dot/update%04d.dot", iteration);
+            //sprintf(title, "objective %lld, not accepting", new_sol.objective);
+            //print_problem(&problem, &new_sol, filename, title);
             //}
         }
         if(local_counter <= 0) {
