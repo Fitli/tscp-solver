@@ -3,7 +3,7 @@
 //
 
 #include <stdlib.h>
-#include "actions.h"
+#include "operations.h"
 #include "heuristics.h"
 #include "change_finder.h"
 #include "solution_modifier.h"
@@ -12,7 +12,7 @@ int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_nod
 int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 void insert_part_later(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 
-void act_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
+void oper_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     Edge **edges;
     int num_edges;
 
@@ -44,7 +44,7 @@ void act_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     free(edges);
 }
 
-void act_add_train_later(Solution *sol, Problem *problem, int station_id, int ts_id) {
+void oper_add_train_later(Solution *sol, Problem *problem, int station_id, int ts_id) {
     insert_part_later(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
 }
 
@@ -78,7 +78,7 @@ void insert_part_later(Solution *sol, Problem *problem, int start_node_id, int e
     free(edges);
 }
 
-void act_add_train_with_edge(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+void oper_add_train_with_edge(Solution *sol, Problem *problem, int edge_id, int ts_id) {
     Edge **edges;
     int num_edges;
 
@@ -96,7 +96,7 @@ void act_add_train_with_edge(Solution *sol, Problem *problem, int edge_id, int t
     free(edges);
 }
 
-void act_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+void oper_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     Node *start_node = &problem->nodes[start_node_id];
     Node *end_node = &problem->nodes[end_node_id];
 
@@ -112,7 +112,7 @@ void act_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id,
     add_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
 }
 
-void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
+void oper_change_train_capacity(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
     Edge **edges = NULL;
     int num_edges = 0;
 
@@ -155,11 +155,11 @@ void act_change_train_capacity(Solution *sol, Problem *problem, int station_id, 
         free(edges);
 }
 
-void act_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
+void oper_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
     destroy_part(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
 }
 
-void act_remove_train_with_edge(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+void oper_remove_train_with_edge(Solution *sol, Problem *problem, int edge_id, int ts_id) {
     Edge **edges = NULL;
     int num_edges = 0;
 
@@ -222,23 +222,23 @@ int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_nod
     return result;
 }
 
-void act_remove_waiting_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
+void oper_remove_waiting_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
     destroy_part_waiting(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
 }
 
-void act_reschedule_w_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+void oper_reschedule_w_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     if(destroy_part_waiting(sol, problem, start_node_id, end_node_id, ts_id))
         insert_part_later(sol, problem, start_node_id, end_node_id, ts_id);
 }
 
-void act_reschedule_n_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+void oper_reschedule_n_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     if(destroy_part(sol, problem, start_node_id, end_node_id, ts_id))
         insert_part_later(sol, problem, start_node_id, end_node_id, ts_id);
 }
 
-void act_reschedule_n_w(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+void oper_reschedule_n_w(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     if(destroy_part(sol, problem, start_node_id, end_node_id, ts_id))
-        act_insert_part_waiting(sol, problem, start_node_id, end_node_id, ts_id);
+        oper_insert_part_waiting(sol, problem, start_node_id, end_node_id, ts_id);
 }
 
 int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
@@ -274,7 +274,7 @@ int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int
     return result;
 }
 
-void act_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+void oper_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id) {
     if(problem->edges[edge_id].type != SUBCONNECTION) {
         return;
     }
@@ -301,7 +301,7 @@ void act_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id)
         move_to_other_subcon(sol, problem, &problem->trainset_types[ts_id], &problem->edges[edge_id], &problem->edges[selected_edge_id]);
 }
 
-void act_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+void oper_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id) {
     if(problem->edges[edge_id].type != SUBCONNECTION) {
         return;
     }

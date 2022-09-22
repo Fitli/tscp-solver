@@ -6,7 +6,7 @@
 #include "heuristics.h"
 #include "change_finder.h"
 #include "test.h"
-#include "actions.h"
+#include "operations.h"
 #include "dot_printer.h"
 
 #define TO_DOT 1
@@ -43,63 +43,63 @@ void do_random_action(Problem *problem, Solution *sol) {
     switch(r) {
         case 0:
             printf("add train\n");
-            act_add_train_later(sol, problem, rand_st, rand_ts);
+            oper_add_train_later(sol, problem, rand_st, rand_ts);
             return;
         case 1:
             printf("remove train\n");
-            act_remove_train(sol, problem, rand_st, rand_ts);
+            oper_remove_train(sol, problem, rand_st, rand_ts);
             return;
         case 2:
             printf("remove waiting train\n");
-            act_remove_waiting_train(sol, problem, rand_st, rand_ts);
+            oper_remove_waiting_train(sol, problem, rand_st, rand_ts);
             return;
         case 3:
             printf("change train\n");
-            act_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 1, 1);
+            oper_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 1, 1);
             return;
         case 4:
             printf("move edge back\n");
-            act_move_edge_back(sol, problem, rand_edge, rand_ts);
+            oper_move_edge_back(sol, problem, rand_edge, rand_ts);
             return;
         case 5:
             printf("move edge front\n");
-            act_move_edge_front(sol, problem, rand_edge, rand_ts);
+            oper_move_edge_front(sol, problem, rand_edge, rand_ts);
             return;
         case 6:
             printf("change train 2:1\n");
-            act_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 2, 1);
+            oper_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 2, 1);
             return;
         case 7:
             printf("change train 1:2\n");
-            act_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 1, 2);
+            oper_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 1, 2);
             return;
         case 8:
         case 9:
         case 10:
             printf("reschedule_w_l\n");
-            act_reschedule_w_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
+            oper_reschedule_w_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
         case 11:
         case 12:
         case 13:
             printf("reschedule_n_l\n");
-            act_reschedule_n_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
+            oper_reschedule_n_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
         case 14:
             printf("add_to_empty\n");
-            act_add_train_to_empty(sol, problem, rand_st);
+            oper_add_train_to_empty(sol, problem, rand_st);
             return;
         case 15:
             printf("add with edge\n");
-            act_add_train_with_edge(sol, problem, rand_edge, rand_ts);
+            oper_add_train_with_edge(sol, problem, rand_edge, rand_ts);
             return;
         case 16:
             printf("remove with edge\n");
-            act_remove_train_with_edge(sol, problem, rand_edge, rand_ts);
+            oper_remove_train_with_edge(sol, problem, rand_edge, rand_ts);
             return;
         default:
             printf("reschedule_n_w\n");
-            act_reschedule_n_w(sol, problem, rand_start_node, rand_end_node, rand_ts);
+            oper_reschedule_n_w(sol, problem, rand_start_node, rand_end_node, rand_ts);
             return;
     }
 }
@@ -128,7 +128,7 @@ int main() {
         }
         printf("add a train beginning in %d\n", station_id);
 
-        act_add_train_to_empty(&sol, &problem, station_id);
+        oper_add_train_to_empty(&sol, &problem, station_id);
 
         if(TO_DOT) {
             sprintf(filename, "dot/init%03d.dot", i);
@@ -221,7 +221,7 @@ int main2() {
         }
         printf("add a train beginning in %d\n", station_id);
 
-        act_add_train_to_empty(&sol, &problem, station_id);
+        oper_add_train_to_empty(&sol, &problem, station_id);
 
         if(TO_DOT) {
             sprintf(filename, "dot/init%03d.dot", i);
