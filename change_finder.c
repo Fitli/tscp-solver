@@ -449,9 +449,9 @@ bool find_part_containing_edge(Solution *sol, const Problem *problem, const Edge
 
 int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge *edge, int num_conds,
                                 EdgeCondition **move_conditions, EdgeCondition *wait_condition,Edge ***edges, int *num_edges) {
-    Edge **beginning;
-    Edge **center;
-    Edge **end;
+    Edge **beginning = NULL;
+    Edge **center = NULL;
+    Edge **end = NULL;
     int num_beginning, num_center, num_end;
 
     bool found_center = false;

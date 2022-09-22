@@ -7,8 +7,8 @@
 #include "datatypes.h"
 
 //TODO zadefinovat na lepším místě
-#define CAPACITY_PENALTY 10000000000
-#define MAX_LEN_PENALTY 100000000000000
+#define CAPACITY_PENALTY 10000000000000
+#define MAX_LEN_PENALTY 100000000000000000
 
 void recalculate_objective(Solution *sol, Problem *problem) {
     sol->objective = 0;

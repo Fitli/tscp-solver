@@ -78,6 +78,24 @@ void insert_part_later(Solution *sol, Problem *problem, int start_node_id, int e
     free(edges);
 }
 
+void act_add_train_with_edge(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+    Edge **edges;
+    int num_edges;
+
+    EdgeCondition *cond_more_ts = create_edge_condition(&edge_needs_more_ts, NULL, NULL);
+
+    int num_conditions = 2;
+    EdgeCondition *front_conditions[5];
+    front_conditions[0] = cond_more_ts;
+    front_conditions[1] = NULL;
+
+    find_train_containing_edge(sol, problem, &problem->edges[edge_id], num_conditions, front_conditions, NULL, &edges, &num_edges);
+    add_train_array(sol, problem,  &problem->trainset_types[ts_id], edges, num_edges);
+
+    free_edge_conditions(cond_more_ts);
+    free(edges);
+}
+
 void act_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     Node *start_node = &problem->nodes[start_node_id];
     Node *end_node = &problem->nodes[end_node_id];
