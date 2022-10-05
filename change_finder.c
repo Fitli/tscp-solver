@@ -8,6 +8,8 @@
 #include "change_finder.h"
 #include "heuristics.h"
 
+void fastest_path_from_node_to_stations(Solution *sol, const Problem *problem, const Node *start, EdgeCondition *move_condition,
+                                        EdgeCondition *wait_condition, Edge ***edges, int *nums_edges);
 
 /*
  * Finds the first and the last SUBCONNESTION edges that can be chosen on the path from node_front to node_back
@@ -125,18 +127,45 @@ int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *
 
 }
 
+//greedy finding of a journey between two nodes of the same station
 int find_train_between_nodes(Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back, int num_conds,
                           EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
                           Edge ***edges, int *num_edges) {
-
     int front_move_edge_id = 0, back_move_edge_id = 0;
 
     int num_edges_front = 0;
-    int cap_buffer_front = 128;
     int num_edges_back = 0;
-    int cap_buffer_back = 128;
-    Edge **buffer_front = malloc(cap_buffer_front * sizeof(Edge *));
-    Edge **buffer_back = malloc(cap_buffer_back * sizeof(Edge *));
+    Edge *buffer_front[problem->num_edges];
+    Edge *buffer_back[problem->num_edges];
+
+    if (node_front->station != node_back->station) {
+        Edge** station_edges[problem->num_stations];
+        int station_num_edges[problem->num_stations];
+        for (int i = 0; i < num_conds; ++i) {
+            fastest_path_from_node_to_stations(sol, problem, node_front, front_conditions[i], wait_condition, station_edges, station_num_edges);
+            if(station_edges[node_back->station->id] == NULL) {
+                continue;
+            }
+            for (int j = 0; j < station_num_edges[node_back->station->id]; ++j) {
+                buffer_front[j] = station_edges[node_back->station->id][j];
+            }
+            num_edges_front = station_num_edges[node_back->station->id];
+
+            node_front = buffer_front[num_edges_front - 1]->end_node;
+
+            for (int j = 0; j < problem->num_stations; ++j) {
+                if(station_edges[j])
+                    free(station_edges[j]);
+            }
+            break;
+        }
+    }
+
+    if(node_front->station != node_back->station || node_front->time > node_back->time) {
+        *edges = NULL;
+        *num_edges = 0;
+        return 0;
+    }
 
     while (front_move_edge_id >= 0) {
         for (int i = 0; i < num_conds; i++) {
@@ -150,45 +179,46 @@ int find_train_between_nodes(Solution *sol, const Problem *problem, const Node *
         }
 
         while(node_front->out_subcon == NULL || node_front->out_subcon->id != front_move_edge_id) {
-            add_to_buffer(&buffer_front, node_front->out_waiting, &num_edges_front, &cap_buffer_front);
+            buffer_front[num_edges_front] = node_front->out_waiting;
+            num_edges_front++;
             node_front = node_front->out_waiting->end_node;
         }
-        add_to_buffer(&buffer_front, node_front->out_subcon, &num_edges_front, &cap_buffer_front);
+        buffer_front[num_edges_front] = node_front->out_subcon;
+        num_edges_front++;
         node_front = node_front->out_subcon->end_node;
 
         while(node_back->in_subcon == NULL || node_back->in_subcon->id != back_move_edge_id) {
-            add_to_buffer(&buffer_back, node_back->in_waiting, &num_edges_back, &cap_buffer_back);
+            buffer_back[num_edges_back] = node_back->in_waiting;
+            num_edges_back++;
             node_back = node_back->in_waiting->start_node;
         }
-        add_to_buffer(&buffer_back, node_back->in_subcon, &num_edges_back, &cap_buffer_back);
+        buffer_back[num_edges_back] = node_back->in_subcon;
+        num_edges_back++;
         node_back = node_back->in_subcon->start_node;
     }
 
     while (node_front->id != node_back->id) {
         if(!eval_edge_condition(wait_condition, node_front->out_waiting, &sol->edge_solution[node_front->out_waiting->id])) {
             *edges = NULL;
-            free(buffer_front);
-            free(buffer_back);
             return 0;
         }
-        add_to_buffer(&buffer_front, node_front->out_waiting, &num_edges_front, &cap_buffer_front);
+        buffer_front[num_edges_front] = node_front->out_waiting;
+        num_edges_front++;
         node_front = node_front->out_waiting->end_node;
     }
 
-    for(int i = 0; i<num_edges_back; i++) {
-        add_to_buffer(&buffer_front, buffer_back[i], &num_edges_front, &cap_buffer_front);
-    }
-
-    free(buffer_back);
-
     if(edges != NULL) {
-        *edges = buffer_front;
-    } else {
-        free(buffer_front);
+        *edges = malloc((num_edges_front + num_edges_back) * sizeof(Edge *));
+        for(int i = 0; i<num_edges_front; i++) {
+            (*edges)[i] = buffer_front[i];
+        }
+        for(int i = 0; i<num_edges_back; i++) {
+            (*edges)[num_edges_front + num_edges_back - 1 - i] = buffer_back[i];
+        }
     }
 
     if(num_edges != NULL) {
-        *num_edges = num_edges_front;
+        *num_edges = num_edges_front + num_edges_back;
     }
     return 1;
 }
@@ -299,8 +329,8 @@ void fastest_path_from_node_to_stations(Solution *sol, const Problem *problem, c
                 if(i == j) {
                     continue;
                 }
-                int final_edge_id;
-                select_next_out_edge(sol, queue[i].final_node, queue[i].condition, wait_condition, &final_edge_id);
+                int final_edge_id = -1;
+                select_next_out_edge(sol, queue[i].final_node, queue[j].condition, wait_condition, &final_edge_id);
                 if(final_edge_id >= 0 && (queue[j].final_node == NULL || problem->edges[final_edge_id].end_node->time < queue[j].final_node->time)) {
                     queue[j].final_node = problem->edges[final_edge_id].end_node;
                     queue[j].relaxed = false;
@@ -314,9 +344,10 @@ void fastest_path_from_node_to_stations(Solution *sol, const Problem *problem, c
                         queue[j].path[k] = queue[i].path[k];
                     }
                     Node *node = queue[i].final_node;
-                    while(node->out_subcon->id != final_edge_id) {
+                    while(node->out_subcon == NULL || node->out_subcon->id != final_edge_id) {
                         queue[j].path[k] = node->out_waiting;
                         k++;
+                        node = node->out_waiting->end_node;
                     }
                     queue[j].path[k] = node->out_subcon;
                 }
@@ -386,7 +417,8 @@ void latest_path_from_stations_to_node(Solution *sol, const Problem *problem, co
     }
 }
 
-bool find_part_containing_edge(Solution *sol, const Problem *problem, const Edge *edge, EdgeCondition *move_condition,
+//Find a sequence of edges that starts and ends in the same station and contains `edge`.
+bool find_part_containing_edge(Solution *sol, const Problem *problem, Edge *edge, EdgeCondition *move_condition,
                                EdgeCondition *wait_condition, Edge ***edges, int *num_edges) {
     if ((edge->type == SUBCONNECTION && !eval_edge_condition(move_condition, edge, &sol->edge_solution[edge->id])) ||
         (edge->type != SUBCONNECTION && !eval_edge_condition(wait_condition, edge, &sol->edge_solution[edge->id]))) {
@@ -407,10 +439,10 @@ bool find_part_containing_edge(Solution *sol, const Problem *problem, const Edge
     fastest_path_from_node_to_stations(sol, problem, edge->end_node, move_condition, wait_condition, station_edges, station_num_edges);
     if(station_edges[edge->start_node->station->id]) {
         *num_edges = station_num_edges[edge->start_node->station->id] + 1;
-        *edges = malloc(*num_edges * sizeof(Edge));
+        *edges = malloc(*num_edges * sizeof(Edge *));
         *edges[0] = edge;
         for (int i = 0; i < station_num_edges[edge->start_node->station->id]; ++i) {
-            *edges[i+1] = station_edges[edge->start_node->station->id][i];
+            (*edges)[i+1] = station_edges[edge->start_node->station->id][i];
         }
         for (int i = 0; i < problem->num_stations; ++i) {
             if(station_edges[i])

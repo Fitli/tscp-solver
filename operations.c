@@ -10,7 +10,8 @@
 
 int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
-void insert_part_later(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+int insert_part_later(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+int change_part_capacity(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount);
 
 void oper_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     Edge **edges;
@@ -37,7 +38,7 @@ void oper_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
                           back_conditions, NULL,
                           &edges, &num_edges);
-    add_train_array(sol, problem, &problem->trainset_types[1], edges, num_edges);
+    add_train_array(sol, problem, &problem->trainset_types[0], edges, num_edges);
 
     free_edge_conditions(cond_empty);
     free_edge_conditions(cond_more_ts);
@@ -48,34 +49,53 @@ void oper_add_train_later(Solution *sol, Problem *problem, int station_id, int t
     insert_part_later(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
 }
 
-void insert_part_later(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+void oper_add_train_pair_later(Solution *sol, Problem *problem, int station1_id, int station2_id, int ts_id) {
+    Solution new_sol;
+    empty_solution(problem, &new_sol);
+    if(!insert_part_later(&new_sol, problem, problem->stations[station1_id].source_node->id, problem->stations[station2_id].sink_node->id, ts_id)) {
+        destroy_solution(problem, &new_sol);
+        return;
+    }
+    if(!insert_part_later(&new_sol, problem, problem->stations[station2_id].source_node->id, problem->stations[station1_id].sink_node->id, ts_id)) {
+        destroy_solution(problem, &new_sol);
+        return;
+    }
+    copy_solution(problem, &new_sol, sol);
+    destroy_solution(problem, &new_sol);
+}
+
+int insert_part_later(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     Edge **edges;
     int num_edges;
+    int result = 0;
 
     EdgeCondition *cond_empty = create_edge_condition(&edge_is_empty, NULL, NULL);
     EdgeCondition *cond_more_ts = create_edge_condition(&edge_needs_more_ts, NULL, NULL);
 
     int num_conditions = 4;
-    EdgeCondition *front_conditions[5];
+    EdgeCondition *front_conditions[num_conditions];
     front_conditions[0] = cond_more_ts;
     front_conditions[1] = NULL;
     front_conditions[2] = cond_more_ts;
     front_conditions[3] = NULL;
 
-    EdgeCondition *back_conditions[5];
+    EdgeCondition *back_conditions[num_conditions];
     back_conditions[0] = cond_more_ts;
     back_conditions[1] = cond_more_ts;
     back_conditions[2] = NULL;
     back_conditions[3] = NULL;
 
     find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
-                          back_conditions, NULL,
-                          &edges, &num_edges);
-    add_train_array(sol, problem,  &problem->trainset_types[ts_id], edges, num_edges);
+                          back_conditions, NULL, &edges, &num_edges);
+    if (edges != NULL) {
+        result = 1;
+        add_train_array(sol, problem,  &problem->trainset_types[ts_id], edges, num_edges);
+    }
 
     free_edge_conditions(cond_empty);
     free_edge_conditions(cond_more_ts);
     free(edges);
+    return result;
 }
 
 void oper_add_train_with_edge(Solution *sol, Problem *problem, int edge_id, int ts_id) {
@@ -113,8 +133,28 @@ void oper_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id
 }
 
 void oper_change_train_capacity(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
+    change_part_capacity(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, old_ts_id, new_ts_id, old_ts_amount, new_ts_amount);
+}
+
+void oper_change_train_pair_capacity(Solution *sol, Problem *problem, int station1_id, int station2_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
+    Solution new_sol;
+    empty_solution(problem, &new_sol);
+    if(!change_part_capacity(&new_sol, problem, problem->stations[station1_id].source_node->id, problem->stations[station2_id].sink_node->id, old_ts_id, new_ts_id, old_ts_amount, new_ts_amount)) {
+        destroy_solution(problem, &new_sol);
+        return;
+    }
+    if(!change_part_capacity(&new_sol, problem, problem->stations[station2_id].source_node->id, problem->stations[station1_id].sink_node->id, old_ts_id, new_ts_id, old_ts_amount, new_ts_amount)) {
+        destroy_solution(problem, &new_sol);
+        return;
+    }
+    copy_solution(problem, &new_sol, sol);
+    destroy_solution(problem, &new_sol);
+}
+
+int change_part_capacity(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
     Edge **edges = NULL;
     int num_edges = 0;
+    int result = 0;
 
     int capacity_change = problem->trainset_types[new_ts_id].seats - problem->trainset_types[old_ts_id].seats;
 
@@ -124,39 +164,48 @@ void oper_change_train_capacity(Solution *sol, Problem *problem, int station_id,
 
     EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, &a_data, NULL);
     EdgeCondition *has_ts_and_capacity_cond = create_edge_condition(&edge_enough_capacity, &capacity_change, has_ts_cond);
-    EdgeCondition *has_ts_and_needs_and_capacity_cond = create_edge_condition(&edge_needs_more_ts, NULL, has_ts_and_capacity_cond);
 
-    int num_conditions = 7;
-    EdgeCondition *front_conditions[7];
-    front_conditions[0] = has_ts_and_needs_and_capacity_cond;
-    front_conditions[1] = has_ts_and_needs_and_capacity_cond;
+    int num_conditions = 4;
+    EdgeCondition *front_conditions[num_conditions];
+    front_conditions[0] = has_ts_and_capacity_cond;
+    front_conditions[1] = has_ts_and_capacity_cond;
     front_conditions[2] = has_ts_cond;
-    front_conditions[3] = has_ts_and_capacity_cond;
-    front_conditions[4] = has_ts_and_capacity_cond;
-    front_conditions[5] = has_ts_cond;
-    front_conditions[6] = has_ts_cond;
+    front_conditions[3] = has_ts_cond;
 
-    EdgeCondition *back_conditions[7];
-    back_conditions[0] = has_ts_and_needs_and_capacity_cond;
+    EdgeCondition *back_conditions[num_conditions];
+    back_conditions[0] = has_ts_and_capacity_cond;
     back_conditions[1] = has_ts_cond;
-    back_conditions[2] = has_ts_and_needs_and_capacity_cond;
-    back_conditions[3] = has_ts_and_capacity_cond;
-    back_conditions[4] = has_ts_cond;
-    back_conditions[5] = has_ts_and_capacity_cond;
-    back_conditions[6] = has_ts_cond;
+    back_conditions[2] = has_ts_and_capacity_cond;
+    back_conditions[3] = has_ts_cond;
 
-    if (find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
-                              back_conditions, has_ts_cond,
-                              &edges, &num_edges)) {
+    if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
+                                 back_conditions, has_ts_cond, &edges, &num_edges)) {
         change_train_array(sol, problem, &problem->trainset_types[old_ts_id], &problem->trainset_types[new_ts_id], old_ts_amount, new_ts_amount, edges, num_edges);
+        result = 1;
     }
 
     if(edges)
         free(edges);
+    return result;
 }
 
 void oper_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
     destroy_part(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
+}
+
+void oper_remove_train_pair(Solution *sol, Problem *problem, int station1_id, int station2_id, int ts_id) {
+    Solution new_sol;
+    empty_solution(problem, &new_sol);
+    if(!destroy_part(&new_sol, problem, problem->stations[station1_id].source_node->id, problem->stations[station2_id].sink_node->id, ts_id)) {
+        destroy_solution(problem, &new_sol);
+        return;
+    }
+    if(!destroy_part(&new_sol, problem, problem->stations[station2_id].source_node->id, problem->stations[station1_id].sink_node->id, ts_id)) {
+        destroy_solution(problem, &new_sol);
+        return;
+    }
+    copy_solution(problem, &new_sol, sol);
+    destroy_solution(problem, &new_sol);
 }
 
 void oper_remove_train_with_edge(Solution *sol, Problem *problem, int edge_id, int ts_id) {
@@ -201,18 +250,27 @@ int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_nod
     EdgeCondition *has_ts_and_big_len_cond = create_edge_condition(&edge_has_more_ts_than, &problem->max_len, has_ts_cond);
     EdgeCondition *has_ts_and_capacity_cond = create_edge_condition(&edge_enough_capacity, &capacity_change, has_ts_cond);
 
-    int num_conditions = 2;
-    EdgeCondition *front_conditions[4];
+    int num_conditions = 7;
+    EdgeCondition *front_conditions[num_conditions];
     front_conditions[0] = has_ts_and_big_len_cond;
-    front_conditions[1] = has_ts_and_capacity_cond;
+    front_conditions[1] = has_ts_and_big_len_cond;
+    front_conditions[2] = has_ts_cond;
+    front_conditions[3] = has_ts_and_capacity_cond;
+    front_conditions[4] = has_ts_and_capacity_cond;
+    front_conditions[5] = has_ts_cond;
+    front_conditions[6] = has_ts_cond;
 
-    EdgeCondition *back_conditions[4];
+    EdgeCondition *back_conditions[num_conditions];
     back_conditions[0] = has_ts_and_big_len_cond;
-    back_conditions[1] = has_ts_and_capacity_cond;
+    back_conditions[1] = has_ts_cond;
+    back_conditions[2] = has_ts_and_big_len_cond;
+    back_conditions[3] = has_ts_and_capacity_cond;
+    back_conditions[4] = has_ts_cond;
+    back_conditions[5] = has_ts_and_capacity_cond;
+    back_conditions[6] = has_ts_cond;
 
     if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
-                              back_conditions, has_ts_cond,
-                              &edges, &num_edges)) {
+                              back_conditions, has_ts_cond, &edges, &num_edges)) {
         remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
         result = 1;
     }

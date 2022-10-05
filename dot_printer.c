@@ -30,10 +30,16 @@ void print_problem(Problem* problem, Solution *sol, const char* output_filename,
             if(problem->edges[i].type == SUBCONNECTION)
                 fprintf(file, "[style=dotted]");
             fprintf(file, ";\n");
+
+            int capacity = 0;
             for(int ts = 0; ts < problem->num_trainset_types; ts++) {
                 for(int j = 0; j < sol->edge_solution[i].num_trainsets[ts]; j++) {
                     fprintf(file, "\t%d -> %d [color=%s];\n", problem->edges[i].start_node->id, problem->edges[i].end_node->id, colors[ts]);
                 }
+                capacity += problem->trainset_types[ts].seats * sol->edge_solution[i].num_trainsets[ts];
+            }
+            if(capacity < problem->edges[i].minimal_capacity) {
+                fprintf(file, "\t%d -> %d [penwidth=3];\n", problem->edges[i].start_node->id, problem->edges[i].end_node->id);
             }
         }
     }
