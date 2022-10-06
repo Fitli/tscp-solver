@@ -24,6 +24,9 @@ void remove_trainset_from_edge(Solution *sol, const Problem *problem, const Trai
 }
 
 void add_train_array(Solution *sol, const Problem *problem, const Trainset *trainset, Edge **edges, int num_edges) {
+    if(num_edges == 0) {
+        return;
+    }
     update_obj_add_ts(sol, problem, trainset);
     for (int i = 0; i < num_edges; ++i) {
         if (edges[i] != NULL) {
@@ -33,6 +36,9 @@ void add_train_array(Solution *sol, const Problem *problem, const Trainset *trai
 }
 
 void remove_train_array(Solution *sol, const Problem *problem, const Trainset *trainset, Edge **edges, int num_edges) {
+    if(num_edges == 0) {
+        return;
+    }
     update_obj_remove_ts(sol, problem, trainset);
     for (int i = 0; i < num_edges; ++i) {
         if(edges[i] != NULL) {
@@ -42,6 +48,9 @@ void remove_train_array(Solution *sol, const Problem *problem, const Trainset *t
 }
 
 void change_train_array(Solution *sol, const Problem *problem, const Trainset *old_ts, const Trainset *new_ts, int old_ts_amount, int new_ts_amount, Edge **edges, int num_edges) {
+    if(num_edges == 0) {
+        return;
+    }
     for(int i = 0; i < old_ts_amount; i++) {
         remove_train_array(sol, problem, old_ts, edges, num_edges);
     }

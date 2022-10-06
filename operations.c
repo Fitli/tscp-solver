@@ -3,6 +3,7 @@
 //
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "operations.h"
 #include "heuristics.h"
 #include "change_finder.h"
@@ -105,7 +106,7 @@ void oper_add_train_with_edge(Solution *sol, Problem *problem, int edge_id, int 
     EdgeCondition *cond_more_ts = create_edge_condition(&edge_needs_more_ts, NULL, NULL);
 
     int num_conditions = 2;
-    EdgeCondition *front_conditions[5];
+    EdgeCondition *front_conditions[num_conditions];
     front_conditions[0] = cond_more_ts;
     front_conditions[1] = NULL;
 

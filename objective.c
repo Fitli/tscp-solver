@@ -41,6 +41,15 @@ void recalculate_objective(Solution *sol, Problem *problem) {
         if(sum_ts > problem->max_len) {
             sol->objective += (sum_ts - problem->max_len) * MAX_LEN_PENALTY;
         }
+        if(sum_ts == 0) {
+            sol->objective +=  MAX_LEN_PENALTY;
+        }
+    }
+    for (int i = 0; i < problem->num_stations; ++i) {
+        int source_edge_id = problem->stations[i].source_node->out_waiting->id;
+        for (int j = 0; j < problem->num_trainset_types; ++j) {
+            sol->objective += sol->edge_solution[source_edge_id].num_trainsets[j] * (long long) problem->trainset_types[j].investment;
+        }
     }
 }
 
@@ -73,6 +82,9 @@ void update_obj_add_ts_to_edge(Solution *sol, const Problem *problem, const Trai
     if(sum_ts > problem->max_len) {
         sol->objective += MAX_LEN_PENALTY;
     }
+    if(sum_ts == 1) {
+        sol->objective -=  MAX_LEN_PENALTY;
+    }
 }
 
 /*
@@ -88,7 +100,12 @@ void update_obj_remove_ts_from_edge(Solution *sol, const Problem *problem, const
 
     int old_edge_capacity = sol->edge_solution[edge->id].capacity;
     if(old_edge_capacity - ts->seats < edge->minimal_capacity) {
-        sol->objective += (edge->minimal_capacity - (old_edge_capacity - ts->seats)) * CAPACITY_PENALTY;
+        if(old_edge_capacity < edge->minimal_capacity) {
+            sol->objective += ts->seats * CAPACITY_PENALTY;
+        }
+        else {
+            sol->objective += (edge->minimal_capacity - (old_edge_capacity - ts->seats)) * CAPACITY_PENALTY;
+        }
     }
 
     int sum_ts = 0;
@@ -97,6 +114,9 @@ void update_obj_remove_ts_from_edge(Solution *sol, const Problem *problem, const
     }
     if(sum_ts > problem->max_len) {
         sol->objective -= MAX_LEN_PENALTY;
+    }
+    if(sum_ts == 1) {
+        sol->objective +=  MAX_LEN_PENALTY;
     }
 }
 

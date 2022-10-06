@@ -10,6 +10,7 @@
 #include "operations.h"
 #include "dot_printer.h"
 #include "random.h"
+#include "objective.h"
 
 #define TO_DOT 1
 #define IMPROVE_RATIO 1.1
@@ -129,6 +130,7 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
     if(operation_data) {
         fprintf(operation_data, "%s,", operation_name);
     }
+    printf("%s\n", operation_name);
 }
 
 int main() {
@@ -146,7 +148,7 @@ int main() {
 
     empty_solution(&problem, &sol);
     printf("objective: %lld\n", sol.objective);
-    for(int i = 0; i < 1000; i++) {
+    /*for(int i = 0; i < 1000; i++) {
         printf("iteration %d:\n", i);
         int station_id = -1;
         if(i%2 == 0) {
@@ -183,7 +185,7 @@ int main() {
             }
         }
         printf("num_empty = %d\n", empty_subcons);
-    }
+    }*/
 
     int iteration = 0;
     long long int tabu[TABU_SIZE];
@@ -224,17 +226,18 @@ int main() {
                 continue;
             }
             fprintf(csv_operations, "0,%lld\n", new_sols[local_counter].objective - sol.objective);
+
+            long long updated_obj = new_sols[local_counter].objective;
+
+            if(updated_obj != new_sols[local_counter].objective) {
+                print_problem(&problem, &new_sols[local_counter], "dot/broken_sol.dot", "broken");
+                return 0;
+            }
+
             local_counter++;
         }
         qsort(new_sols, NUM_LOCAL_CHANGES, sizeof(Solution), cmpfunc);
-        for (int i = 0; i < TABU_SIZE; ++i) {
-            printf("%lld ", tabu[i]);
-        }
-        printf("\n");
-        for (int i = 0; i < NUM_LOCAL_CHANGES; ++i) {
-            printf("%lld ", new_sols[i].objective);
-        }
-        printf("\n");
+
         Solution *selected_solution = &new_sols[0];
         //Solution *selected_solution = &new_sols[random_1_over_square(NUM_LOCAL_CHANGES)];
         copy_solution(&problem, selected_solution, &sol);
@@ -257,6 +260,7 @@ int main() {
 
     printf("best objective: %lld\n", overall_best.objective);
     destroy_solution(&problem, &sol);
+    destroy_solution(&problem, &overall_best);
     for (int i = 0; i < NUM_LOCAL_CHANGES; ++i) {
         destroy_solution(&problem, new_sols + i);
     }
