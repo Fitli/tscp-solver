@@ -15,7 +15,7 @@
 #define TO_DOT 1
 #define IMPROVE_RATIO 1.1
 #define NUM_LOCAL_CHANGES 100
-#define NUM_RESTART_BEST 1000
+#define NUM_RESTART_BEST 2000
 #define TABU_SIZE 10
 
 void print_in_out(Problem *problem) {
@@ -133,8 +133,9 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
     printf("%s\n", operation_name);
 }
 
+
 int main() {
-    srand(1);
+    srand(3);
     Problem problem;
     parse("../../small_data_2_ts.cfg", &problem);
     Solution sol;
@@ -214,6 +215,11 @@ int main() {
                 break;
             }
 
+            if(!test_objective(&problem, new_sols + local_counter)) {
+                printf("broken objective\n");
+                break;
+            }
+
             bool is_tabu = false;
             for (int i = 0; i < TABU_SIZE; ++i) {
                 if(new_sols[local_counter].objective == tabu[i]) {
@@ -258,6 +264,8 @@ int main() {
     if(TO_DOT)
         print_problem(&problem, &overall_best, "dot/solution.dot", "final");
 
+    printf("best objective: %lld\n", overall_best.objective);
+    recalculate_objective(&overall_best, &problem);
     printf("best objective: %lld\n", overall_best.objective);
     destroy_solution(&problem, &sol);
     destroy_solution(&problem, &overall_best);

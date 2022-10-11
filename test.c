@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include "test.h"
+#include "objective.h"
 
 int test_graph_consistency(Problem *problem, Solution *solution){
     for (int i_node = 0; i_node < problem->num_inner_nodes; i_node++) {
@@ -45,4 +46,18 @@ int test_start_end_station_consistency(Problem *problem, Solution *solution){
 
 int test_consistency(Problem *problem, Solution *solution) {
     return test_graph_consistency(problem, solution) && test_start_end_station_consistency(problem, solution);
+}
+
+int test_objective(Problem *problem, Solution *solution) {
+    int out = 1;
+    Solution sol_copy;
+    empty_solution(problem, &sol_copy);
+    copy_solution(problem, solution, &sol_copy);
+    recalculate_objective(&sol_copy, problem);
+    if(solution->objective != sol_copy.objective) {
+        fprintf(stderr, "OBJECTIVE TEST: itratively updated objective is not euqal to recalculated objective\n%lld\n%lld", solution->objective, sol_copy.objective);
+        out = 0;
+    }
+    destroy_solution(problem, &sol_copy);
+    return out;
 }
