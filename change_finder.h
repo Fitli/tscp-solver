@@ -41,4 +41,8 @@ void select_prev_in_edge(const Solution *sol, const Node *node, EdgeCondition *i
 int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge *edge, int num_conds,
                                 EdgeCondition **move_conditions, EdgeCondition *wait_condition,Edge ***edges, int *num_edges);
 
+int find_train_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
+                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_jumps,
+                              Edge ***edges, int *num_edges);
+
 #endif //TSCP_SOLVER_CHANGE_FINDER_H

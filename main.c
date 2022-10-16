@@ -15,8 +15,9 @@
 #define TO_DOT 1
 #define IMPROVE_RATIO 1.1
 #define NUM_LOCAL_CHANGES 100
-#define NUM_RESTART_BEST 2000
+#define NUM_RESTART_BEST 4000
 #define TABU_SIZE 10
+#define SEED 4
 
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
@@ -122,6 +123,14 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
             operation_name = "remove with edge";
             oper_remove_train_with_edge(sol, problem, rand_edge, rand_ts);
             break;
+        case 17:
+            operation_name = "remove dfs";
+            oper_remove_train_dfs(sol, problem, rand_st, rand_ts);
+            break;
+        case 18:
+            operation_name = "change dfs";
+            oper_change_train_capacity_dfs(sol, problem, rand_st, rand_ts, rand_ts2, 1, 1);
+            break;
         default:
             operation_name = "reschedule_n_w";
             oper_reschedule_n_w(sol, problem, rand_start_node, rand_end_node, rand_ts);
@@ -130,12 +139,12 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
     if(operation_data) {
         fprintf(operation_data, "%s,", operation_name);
     }
-    printf("%s\n", operation_name);
+    //printf("%s\n", operation_name);
 }
 
 
 int main() {
-    srand(3);
+    srand(SEED);
     Problem problem;
     parse("../../small_data_2_ts.cfg", &problem);
     Solution sol;
@@ -203,6 +212,7 @@ int main() {
     empty_solution(&problem, &overall_best);
     copy_solution(&problem, &sol, &overall_best);
     while(iteration < NUM_RESTART_BEST) {
+        printf("%d\n", iteration);
         int local_counter = 0;
         while (local_counter < NUM_LOCAL_CHANGES) {
             fprintf(csv_operations, "%d,", iteration);

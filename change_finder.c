@@ -12,7 +12,7 @@ void fastest_path_from_node_to_stations(Solution *sol, const Problem *problem, c
                                         EdgeCondition *wait_condition, Edge ***edges, int *nums_edges);
 
 /*
- * Finds the first and the last SUBCONNESTION edges that can be chosen on the path from node_front to node_back
+ * Finds the first and the last SUBCONNECTION edges that can be chosen on the path from node_front to node_back
  * where the predicates front_condition and back_condition hold.
  */
 void select_front_back_subcons(const Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
@@ -94,23 +94,6 @@ void select_front_back_subcons(const Solution *sol, const Problem *problem, cons
     }
 }
 
-/*
- * Just a helper function for find_train_end_to_end. Adds an edge to a buffer
- */
-void add_to_buffer(Edge ***buffer, Edge *content, int *num_elems, int *buffer_cap) {
-    if(*num_elems >= *buffer_cap) {
-        size_t size = (*buffer_cap) * 2 * sizeof(Edge *);
-        Edge **helper = realloc(*buffer, size);
-        if (helper == NULL) {
-            fprintf(stderr, "Allocation error (add_to_buffer)\n");
-            return;
-        }
-        (*buffer) = helper;
-        (*buffer_cap) *= 2;
-    }
-    (*buffer)[*num_elems] = content;
-    (*num_elems)++;
-}
 int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *station, int num_conds,
                           EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
                           Edge ***edges, int *num_edges) {
@@ -554,4 +537,65 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
         free(end);
     }
     return 1;
+}
+
+int find_train_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
+                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_jumps,
+                              Edge ***edges, int *num_edges) {
+    bool used_wait[problem->num_nodes];
+    bool used_subcon[problem->num_nodes];
+    for (int i = 0; i < problem->num_nodes; ++i) {
+        used_wait[i] = false;
+        used_subcon[i] = false;
+        if(problem->nodes[i].out_subcon == NULL) {
+            used_subcon[i] = true;
+        }
+    }
+
+    Edge *buffer[problem->num_nodes];
+    Node *node = start_node;
+    int buffer_size = 0;
+
+    while (true)  {
+        if(node == end_node) {
+            break;
+        }
+
+        if(used_wait[node->id] && used_subcon[node->id]) {
+            if(buffer_size == 0) {
+                break;
+            }
+            buffer_size--;
+            node = buffer[buffer_size]->start_node;
+            continue;
+        }
+
+        if(used_wait[node->id] || (!used_subcon[node->id] && rand()%2 == 0)) {
+            used_subcon[node->id] = true;
+            if(node->out_subcon && eval_edge_condition(move_condition, node->out_subcon, &sol->edge_solution[node->out_subcon->id])) {
+                buffer[buffer_size] = node->out_subcon;
+                buffer_size++;
+                node = node->out_subcon->end_node;
+            }
+        } else {
+            used_wait[node->id] = true;
+            if(node->out_waiting && eval_edge_condition(wait_condition, node->out_waiting, &sol->edge_solution[node->out_waiting->id])) {
+                buffer[buffer_size] = node->out_waiting;
+                buffer_size++;
+                node = node->out_waiting->end_node;
+            } else if (node->out_waiting == NULL && allow_jumps == 1) { // jump into the next day
+                node = node->station->source_node;
+            }
+        }
+    }
+
+    if(buffer_size > 0) {
+        *edges = malloc(buffer_size * sizeof(Edge*));
+        *num_edges = buffer_size;
+        for (int i = 0; i < buffer_size; ++i) {
+            (*edges)[i] = buffer[i];
+        }
+        return 1;
+    }
+    return 0;
 }

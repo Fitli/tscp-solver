@@ -9,10 +9,13 @@
 #include "change_finder.h"
 #include "solution_modifier.h"
 
-int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+int remove_part(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 int insert_part_later(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 int change_part_capacity(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount);
+int remove_part_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id, int allow_jumps);
+int change_part_capacity_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int old_ts_id,
+                             int new_ts_id, int old_ts_amount, int new_ts_amount, int allow_jumps);
 
 void oper_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     Edge **edges;
@@ -137,6 +140,12 @@ void oper_change_train_capacity(Solution *sol, Problem *problem, int station_id,
     change_part_capacity(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, old_ts_id, new_ts_id, old_ts_amount, new_ts_amount);
 }
 
+void oper_change_train_capacity_dfs(Solution *sol, Problem *problem, int station_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
+    Station *station = &problem->stations[station_id];
+    change_part_capacity_dfs(sol, problem, station->source_node->id, station->sink_node->id,
+                             old_ts_id, new_ts_id, old_ts_amount, new_ts_amount, 1);
+}
+
 void oper_change_train_pair_capacity(Solution *sol, Problem *problem, int station1_id, int station2_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
     Solution new_sol;
     empty_solution(problem, &new_sol);
@@ -190,18 +199,53 @@ int change_part_capacity(Solution *sol, Problem *problem, int start_node_id, int
     return result;
 }
 
+int change_part_capacity_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id,
+                             int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount, int allow_jumps) {
+    Edge **edges = NULL;
+    int num_edges = 0;
+    int result = 0;
+
+    int a_data[2];
+    a_data[0] = old_ts_id;
+    a_data[1] = old_ts_amount;
+
+    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
+
+    if(find_train_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
+                                 has_ts_cond, has_ts_cond, allow_jumps, &edges, &num_edges)) {
+        for (int i = 0; i < old_ts_amount; ++i) {
+            remove_train_array(sol, problem, &problem->trainset_types[old_ts_id], edges, num_edges);
+        }
+        for (int i = 0; i < new_ts_amount; ++i) {
+            add_train_array(sol, problem, &problem->trainset_types[new_ts_id], edges, num_edges);
+        }
+        result = 1;
+    }
+
+    free(edges);
+    return result;
+}
+
 void oper_remove_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
-    destroy_part(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
+    remove_part(sol, problem, problem->stations[station_id].source_node->id,
+                problem->stations[station_id].sink_node->id, ts_id);
+}
+
+void oper_remove_train_dfs(Solution *sol, Problem *problem, int station_id, int ts_id) {
+    Station *station = &problem->stations[station_id];
+    remove_part_dfs(sol, problem, station->source_node->id, station->sink_node->id, ts_id, 1);
 }
 
 void oper_remove_train_pair(Solution *sol, Problem *problem, int station1_id, int station2_id, int ts_id) {
     Solution new_sol;
     empty_solution(problem, &new_sol);
-    if(!destroy_part(&new_sol, problem, problem->stations[station1_id].source_node->id, problem->stations[station2_id].sink_node->id, ts_id)) {
+    if(!remove_part(&new_sol, problem, problem->stations[station1_id].source_node->id,
+                    problem->stations[station2_id].sink_node->id, ts_id)) {
         destroy_solution(problem, &new_sol);
         return;
     }
-    if(!destroy_part(&new_sol, problem, problem->stations[station2_id].source_node->id, problem->stations[station1_id].sink_node->id, ts_id)) {
+    if(!remove_part(&new_sol, problem, problem->stations[station2_id].source_node->id,
+                    problem->stations[station1_id].sink_node->id, ts_id)) {
         destroy_solution(problem, &new_sol);
         return;
     }
@@ -236,7 +280,15 @@ void oper_remove_train_with_edge(Solution *sol, Problem *problem, int edge_id, i
     free(edges);
 }
 
-int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+void oper_remove_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+    Edge *edge = &problem->edges[edge_id];
+    if (remove_part_dfs(sol, problem, edge->end_node->id, edge->start_node->id, ts_id, 1)) {
+        remove_trainset_from_edge(sol, problem, &problem->trainset_types[ts_id], edge);
+    }
+
+}
+
+int remove_part(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     Edge **edges = NULL;
     int num_edges = 0;
     int result = 0;
@@ -276,7 +328,28 @@ int destroy_part(Solution *sol, Problem *problem, int start_node_id, int end_nod
         result = 1;
     }
 
-    free_edge_conditions(has_ts_and_capacity_cond);
+    free_edge_conditions(has_ts_and_big_len_cond); //TODO: je potřeba uvolnit všechny podmínky, ale to teď nejde
+    free(edges);
+    return result;
+}
+
+int remove_part_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id, int allow_jumps) {
+    Edge **edges = NULL;
+    int num_edges = 0;
+    int result = 0;
+
+    int a_data[2];
+    a_data[0] = ts_id;
+    a_data[1] = 1;
+
+    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
+
+    if(find_train_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
+                              has_ts_cond, has_ts_cond, allow_jumps, &edges, &num_edges)) {
+        remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
+        result = 1;
+    }
+
     free(edges);
     return result;
 }
@@ -291,12 +364,12 @@ void oper_reschedule_w_l(Solution *sol, Problem *problem, int start_node_id, int
 }
 
 void oper_reschedule_n_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
-    if(destroy_part(sol, problem, start_node_id, end_node_id, ts_id))
+    if(remove_part(sol, problem, start_node_id, end_node_id, ts_id))
         insert_part_later(sol, problem, start_node_id, end_node_id, ts_id);
 }
 
 void oper_reschedule_n_w(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
-    if(destroy_part(sol, problem, start_node_id, end_node_id, ts_id))
+    if(remove_part(sol, problem, start_node_id, end_node_id, ts_id))
         oper_insert_part_waiting(sol, problem, start_node_id, end_node_id, ts_id);
 }
 

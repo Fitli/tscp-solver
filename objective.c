@@ -35,9 +35,9 @@ void recalculate_objective(Solution *sol, Problem *problem) {
             sol->objective += CAPACITY_PENALTY * (edge->minimal_capacity - edge_sol->capacity);
         }
 
-        if(edge_sol->capacity > problem->max_cap) {
+        /*if(edge_sol->capacity > problem->max_cap) {
             sol->objective += CAPACITY_PENALTY * (edge_sol->capacity - problem->max_cap);
-        }
+        }*/
 
         int sum_ts = 0;
         for (int i = 0; i < problem->num_trainset_types; ++i) {
@@ -66,6 +66,10 @@ void recalculate_objective(Solution *sol, Problem *problem) {
  * Update solution objective function after adding a trainset to an edge. Called BEFORE the traiset is really added.
  */
 void update_obj_add_ts_to_edge(Solution *sol, const Problem *problem, const Trainset *ts, const Edge *edge) {
+    if(edge->type == SOURCE_EDGE) {
+        sol->objective += (long long) ((double) ts->investment * problem->mod_cost);
+    }
+
     if(edge->type != SUBCONNECTION) {
         return;
     }
@@ -84,12 +88,12 @@ void update_obj_add_ts_to_edge(Solution *sol, const Problem *problem, const Trai
     }
 
     // PENALTY OVER MAXIMAL CAPACITY
-    if (old_edge_capacity >= problem->max_cap) {
+    /*if (old_edge_capacity >= problem->max_cap) {
         sol->objective += ts->seats * CAPACITY_PENALTY;
     }
     else if(old_edge_capacity + ts->seats > problem->max_cap) {
         sol->objective += (old_edge_capacity + ts->seats - problem->max_cap) * CAPACITY_PENALTY;
-    }
+    }*/
 
     // PENALTY FOR WRONG LENGTH
     int sum_ts = 1; // the new ts
@@ -108,6 +112,10 @@ void update_obj_add_ts_to_edge(Solution *sol, const Problem *problem, const Trai
  * Update solution objective function after removing a trainset from an edge. Called BEFORE the traiset is really removed.
  */
 void update_obj_remove_ts_from_edge(Solution *sol, const Problem *problem, const Trainset *ts, const Edge *edge) {
+    if(edge->type == SOURCE_EDGE) {
+        sol->objective -= (long long) ((double) ts->investment * problem->mod_cost);
+    }
+
     if(edge->type != SUBCONNECTION) {
         return;
     }
@@ -125,12 +133,12 @@ void update_obj_remove_ts_from_edge(Solution *sol, const Problem *problem, const
     }
 
     // PENALTY OVER MAXIMAL CAPACITY
-    if(old_edge_capacity - ts->seats > problem->max_cap) {
+    /*if(old_edge_capacity - ts->seats > problem->max_cap) {
         sol->objective -= ts->seats * CAPACITY_PENALTY;
     }
     else if(old_edge_capacity > problem->max_cap) {
         sol->objective -= (old_edge_capacity - problem->max_cap) * CAPACITY_PENALTY;
-    }
+    }*/
 
     int sum_ts = 0;
     for (int i = 0; i < problem->num_trainset_types; ++i) {
@@ -142,18 +150,4 @@ void update_obj_remove_ts_from_edge(Solution *sol, const Problem *problem, const
     if(sum_ts == 1) {
         sol->objective +=  MAX_LEN_PENALTY;
     }
-}
-
-/*
- * Update solution objective function after insterting a new trainset to the system
- */
-void update_obj_add_ts(Solution *sol, const Problem *problem, const Trainset *ts) {
-    sol->objective += (long long) ((double) ts->investment * problem->mod_cost);
-}
-
-/*
- * Update solution objective function after removing whole trainset from the system
- */
-void update_obj_remove_ts(Solution *sol, const Problem *problem, const Trainset *ts) {
-    sol->objective -= (long long) ((double) ts->investment * problem->mod_cost);
 }
