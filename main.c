@@ -12,10 +12,10 @@
 #include "random.h"
 #include "objective.h"
 
-#define TO_DOT 1
+#define TO_DOT 0
 #define IMPROVE_RATIO 1.1
-#define NUM_LOCAL_CHANGES 100
-#define NUM_RESTART_BEST 4000
+#define NUM_LOCAL_CHANGES 30
+#define NUM_RESTART_BEST 5000
 #define TABU_SIZE 10
 #define SEED 4
 
@@ -80,7 +80,7 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
             break;
         case 5:
             operation_name = "move edge front";
-            oper_move_edge_front(sol, problem, rand_edge, rand_ts);
+            //oper_move_edge_front(sol, problem, rand_edge, rand_ts);
             break;
         case 6:
             operation_name = "change train 2:1";
@@ -146,7 +146,7 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
 int main() {
     srand(SEED);
     Problem problem;
-    parse("../../small_data_2_ts.cfg", &problem);
+    parse("../../big_data.cfg", &problem);
     Solution sol;
     char dot_filename[255];
     char dot_title[255];

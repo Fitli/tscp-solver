@@ -240,10 +240,15 @@ int create_nodes(config_t *cfg, Problem *problem) {
         problem->nodes[i].out_waiting = &problem->edges[wout];
         problem->edges[wout].start_node = &problem->nodes[i];
 
+        problem->nodes[i].out_subcon = NULL;
+
+        if(sin >= problem->num_edges || problem->edges[sin].type != SUBCONNECTION) {
+            problem->nodes[i].in_subcon = NULL;
+            continue; // not an subconnection edge
+        }
+
         problem->nodes[i].in_subcon = &problem->edges[sin];
         problem->edges[sin].end_node = &problem->nodes[i];
-
-        problem->nodes[i].out_subcon = NULL;
     }
     // out nodes
     int idx = num_in;
@@ -266,6 +271,12 @@ int create_nodes(config_t *cfg, Problem *problem) {
 
         problem->nodes[idx].in_subcon = NULL;
 
+        if(sout >= problem->num_edges || problem->edges[sout].type != SUBCONNECTION) {
+            problem->nodes[i].out_subcon = NULL;
+            idx++;
+            continue; // not an subconnection edge
+        }
+
         problem->nodes[idx].out_subcon = &problem->edges[sout];
         problem->edges[sout].start_node = &problem->nodes[idx];
 
@@ -282,8 +293,7 @@ int assign_stations(Problem *problem) {
         Station *station = &(problem->stations[i]);
 
         station->num_nodes = 0;
-        int node_cap = 128;
-        station->node_ids = malloc(node_cap*sizeof(int));
+        station->node_ids = malloc(problem->num_nodes*sizeof(int));
 
         Node *node = station->source_node;
         time_t time = 0;
@@ -296,14 +306,9 @@ int assign_stations(Problem *problem) {
 
             station->node_ids[station->num_nodes] = node->id;
             station->num_nodes++;
-            if(station->num_nodes > node_cap) {
-                node_cap *= 2;
-                station->node_ids = realloc(station->node_ids, node_cap*sizeof(int));
-            }
 
             node = node->out_waiting->end_node;
-        }
-        while (node->out_waiting != NULL);
+        } while (node->out_waiting != NULL);
         printf("\n");
         if (node != station->sink_node) {
             fprintf(stderr, "Unconsistent waiting nodes.\n");

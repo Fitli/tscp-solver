@@ -403,6 +403,10 @@ void latest_path_from_stations_to_node(Solution *sol, const Problem *problem, co
 //Find a sequence of edges that starts and ends in the same station and contains `edge`.
 bool find_part_containing_edge(Solution *sol, const Problem *problem, Edge *edge, EdgeCondition *move_condition,
                                EdgeCondition *wait_condition, Edge ***edges, int *num_edges) {
+    if(edge->start_node == NULL || edge->end_node == NULL) { // workaround for unused edges
+        return false;
+    }
+
     if ((edge->type == SUBCONNECTION && !eval_edge_condition(move_condition, edge, &sol->edge_solution[edge->id])) ||
         (edge->type != SUBCONNECTION && !eval_edge_condition(wait_condition, edge, &sol->edge_solution[edge->id]))) {
         *edges = NULL;

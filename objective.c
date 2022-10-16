@@ -7,8 +7,8 @@
 #include "datatypes.h"
 
 //TODO zadefinovat na lepším místě
-#define CAPACITY_PENALTY 10000000000000
-#define MAX_LEN_PENALTY 100000000000000000
+#define CAPACITY_PENALTY 1000000000000
+#define MAX_LEN_PENALTY 1000000000000000
 
 void recalculate_objective(Solution *sol, Problem *problem) {
     sol->objective = 0;
@@ -109,7 +109,7 @@ void update_obj_add_ts_to_edge(Solution *sol, const Problem *problem, const Trai
 }
 
 /*
- * Update solution objective function after removing a trainset from an edge. Called BEFORE the traiset is really removed.
+ * Update solution objective function after removing a trainset from an edge. Called BEFORE the trainset is really removed.
  */
 void update_obj_remove_ts_from_edge(Solution *sol, const Problem *problem, const Trainset *ts, const Edge *edge) {
     if(edge->type == SOURCE_EDGE) {
