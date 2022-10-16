@@ -11,11 +11,12 @@
 #include "dot_printer.h"
 #include "random.h"
 #include "objective.h"
+#include "output.h"
 
 #define TO_DOT 0
 #define IMPROVE_RATIO 1.1
 #define NUM_LOCAL_CHANGES 30
-#define NUM_RESTART_BEST 5000
+#define NUM_RESTART_BEST 10000
 #define TABU_SIZE 10
 #define SEED 4
 
@@ -147,6 +148,7 @@ int main() {
     srand(SEED);
     Problem problem;
     parse("../../big_data.cfg", &problem);
+    //parse("../../small_data.cfg", &problem);
     Solution sol;
     char dot_filename[255];
     char dot_title[255];
@@ -277,6 +279,7 @@ int main() {
     printf("best objective: %lld\n", overall_best.objective);
     recalculate_objective(&overall_best, &problem);
     printf("best objective: %lld\n", overall_best.objective);
+    analyze_solution(&overall_best, &problem);
     destroy_solution(&problem, &sol);
     destroy_solution(&problem, &overall_best);
     for (int i = 0; i < NUM_LOCAL_CHANGES; ++i) {
