@@ -8,7 +8,7 @@
 #include "change_finder.h"
 #include "heuristics.h"
 
-void fastest_path_from_node_to_stations(Solution *sol, const Problem *problem, const Node *start, EdgeCondition *move_condition,
+void fastest_trip_from_node_to_stations(Solution *sol, const Problem *problem, const Node *start, EdgeCondition *move_condition,
                                         EdgeCondition *wait_condition, Edge ***edges, int *nums_edges);
 
 /*
@@ -94,14 +94,15 @@ void select_front_back_subcons(const Solution *sol, const Problem *problem, cons
     }
 }
 
-int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *station, int num_conds,
-                          EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
-                          Edge ***edges, int *num_edges) {
+int find_trip_end_to_end(Solution *sol, const Problem *problem, const Station *station, int num_conds,
+                         EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
+                         Edge ***edges, int *num_edges) {
 
     Node *node_front = station->source_node;
     Node *node_back = station->sink_node;
 
-    int res = find_train_between_nodes(sol, problem, node_front, node_back, num_conds, front_conditions, back_conditions, wait_condition, edges, num_edges);
+    int res = find_trip_between_nodes(sol, problem, node_front, node_back, num_conds, front_conditions, back_conditions,
+                                      wait_condition, edges, num_edges);
 
     // no train found, return
     if(res == 0) {
@@ -111,9 +112,9 @@ int find_train_end_to_end(Solution *sol, const Problem *problem, const Station *
 }
 
 //greedy finding of a journey between two nodes of the same station
-int find_train_between_nodes(Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back, int num_conds,
-                          EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
-                          Edge ***edges, int *num_edges) {
+int find_trip_between_nodes(Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back, int num_conds,
+                            EdgeCondition **front_conditions, EdgeCondition **back_conditions, EdgeCondition *wait_condition,
+                            Edge ***edges, int *num_edges) {
     int front_move_edge_id = 0, back_move_edge_id = 0;
 
     int num_edges_front = 0;
@@ -125,7 +126,8 @@ int find_train_between_nodes(Solution *sol, const Problem *problem, const Node *
         Edge** station_edges[problem->num_stations];
         int station_num_edges[problem->num_stations];
         for (int i = 0; i < num_conds; ++i) {
-            fastest_path_from_node_to_stations(sol, problem, node_front, front_conditions[i], wait_condition, station_edges, station_num_edges);
+            fastest_trip_from_node_to_stations(sol, problem, node_front, front_conditions[i], wait_condition,
+                                               station_edges, station_num_edges);
             if(station_edges[node_back->station->id] == NULL) {
                 continue;
             }
@@ -287,7 +289,7 @@ struct Dijkstra_queue_elem {
     EdgeCondition *condition;
 };
 
-void fastest_path_from_node_to_stations(Solution *sol, const Problem *problem, const Node *start, EdgeCondition *move_condition,
+void fastest_trip_from_node_to_stations(Solution *sol, const Problem *problem, const Node *start, EdgeCondition *move_condition,
                                         EdgeCondition *wait_condition, Edge ***edges, int *nums_edges) {
     Queue_elem queue[problem->num_stations];
     for (int i = 0; i < problem->num_stations; ++i) {
@@ -344,7 +346,7 @@ void fastest_path_from_node_to_stations(Solution *sol, const Problem *problem, c
     }
 }
 
-void latest_path_from_stations_to_node(Solution *sol, const Problem *problem, const Node *end, EdgeCondition *move_condition,
+void latest_trip_from_stations_to_node(Solution *sol, const Problem *problem, const Node *end, EdgeCondition *move_condition,
                                        EdgeCondition *wait_condition, Edge ***edges, int *nums_edges) {
     Queue_elem queue[problem->num_stations];
     for (int i = 0; i < problem->num_stations; ++i) {
@@ -401,7 +403,7 @@ void latest_path_from_stations_to_node(Solution *sol, const Problem *problem, co
 }
 
 //Find a sequence of edges that starts and ends in the same station and contains `edge`.
-bool find_part_containing_edge(Solution *sol, const Problem *problem, Edge *edge, EdgeCondition *move_condition,
+bool find_trip_containing_edge(Solution *sol, const Problem *problem, Edge *edge, EdgeCondition *move_condition,
                                EdgeCondition *wait_condition, Edge ***edges, int *num_edges) {
     if(edge->start_node == NULL || edge->end_node == NULL) { // workaround for unused edges
         return false;
@@ -423,7 +425,8 @@ bool find_part_containing_edge(Solution *sol, const Problem *problem, Edge *edge
 
     Edge** station_edges[problem->num_stations];
     int station_num_edges[problem->num_stations];
-    fastest_path_from_node_to_stations(sol, problem, edge->end_node, move_condition, wait_condition, station_edges, station_num_edges);
+    fastest_trip_from_node_to_stations(sol, problem, edge->end_node, move_condition, wait_condition, station_edges,
+                                       station_num_edges);
     if(station_edges[edge->start_node->station->id]) {
         *num_edges = station_num_edges[edge->start_node->station->id] + 1;
         *edges = malloc(*num_edges * sizeof(Edge *));
@@ -442,7 +445,8 @@ bool find_part_containing_edge(Solution *sol, const Problem *problem, Edge *edge
             free(station_edges[i]);
     }
 
-    latest_path_from_stations_to_node(sol, problem, edge->start_node, move_condition, wait_condition, station_edges, station_num_edges);
+    latest_trip_from_stations_to_node(sol, problem, edge->start_node, move_condition, wait_condition, station_edges,
+                                      station_num_edges);
     if(station_edges[edge->end_node->station->id]) {
         *num_edges = station_num_edges[edge->end_node->station->id] + 1;
         *edges = malloc(*num_edges * sizeof(Edge));
@@ -476,7 +480,7 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
     bool found_center = false;
 
     for (int i = 0; i < num_conds; ++i) {
-        if(find_part_containing_edge(sol, problem, edge, move_conditions[i], wait_condition, &center, &num_center)) {
+        if(find_trip_containing_edge(sol, problem, edge, move_conditions[i], wait_condition, &center, &num_center)) {
             found_center = true;
             break;
         }
@@ -497,7 +501,8 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
         beginning = NULL;
     }
     else {
-        if (!find_train_between_nodes(sol, problem,station->source_node, center_begin, num_conds, move_conditions, move_conditions, wait_condition, &beginning, &num_beginning)) {
+        if (!find_trip_between_nodes(sol, problem, station->source_node, center_begin, num_conds, move_conditions,
+                                     move_conditions, wait_condition, &beginning, &num_beginning)) {
             free(center);
             *edges = NULL;
             *num_edges = 0;
@@ -509,7 +514,8 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
         num_end = 0;
     }
     else {
-        if (!find_train_between_nodes(sol, problem, center_end, station->sink_node, num_conds, move_conditions, move_conditions, wait_condition, &end, &num_end)) {
+        if (!find_trip_between_nodes(sol, problem, center_end, station->sink_node, num_conds, move_conditions,
+                                     move_conditions, wait_condition, &end, &num_end)) {
             free(center);
             if(beginning) {
                 free(beginning);
@@ -543,9 +549,23 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
     return 1;
 }
 
-int find_train_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
-                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_jumps,
-                              Edge ***edges, int *num_edges) {
+/**
+ * Finds a sequence of edges connecting `start_node` and `end_node`. Uses DFS with random order of searching branches
+ *
+ * @param problem
+ * @param sol
+ * @param start_node
+ * @param end_node
+ * @param wait_condition must hold for all WAITING edges in the trip
+ * @param move_condition must hold for all SUBCONNECTION edges in the trip
+ * @param allow_jumps if 1, it is alloved to jump between evening and morning in the same station
+ * @param[out] edges dynamically alocated array with edges in the trip.
+ * @param[out] num_edges number of edges in `edges`
+ * @return 1 if found a trip, 0 otherwise
+ */
+int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
+                             EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_jumps,
+                             Edge ***edges, int *num_edges) {
     bool used_wait[problem->num_nodes];
     bool used_subcon[problem->num_nodes];
     for (int i = 0; i < problem->num_nodes; ++i) {

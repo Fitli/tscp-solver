@@ -39,9 +39,9 @@ void oper_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     back_conditions[3] = NULL;
     back_conditions[4] = cond_empty;
 
-    find_train_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
-                          back_conditions, NULL,
-                          &edges, &num_edges);
+    find_trip_end_to_end(sol, problem, &problem->stations[station_id], num_conditions, front_conditions,
+                         back_conditions, NULL,
+                         &edges, &num_edges);
     add_train_array(sol, problem, &problem->trainset_types[0], edges, num_edges);
 
     free_edge_conditions(cond_empty);
@@ -89,8 +89,9 @@ int insert_part_later(Solution *sol, Problem *problem, int start_node_id, int en
     back_conditions[2] = NULL;
     back_conditions[3] = NULL;
 
-    find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
-                          back_conditions, NULL, &edges, &num_edges);
+    find_trip_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions,
+                            front_conditions,
+                            back_conditions, NULL, &edges, &num_edges);
     if (edges != NULL) {
         result = 1;
         add_train_array(sol, problem,  &problem->trainset_types[ts_id], edges, num_edges);
@@ -188,8 +189,9 @@ int change_part_capacity(Solution *sol, Problem *problem, int start_node_id, int
     back_conditions[2] = has_ts_and_capacity_cond;
     back_conditions[3] = has_ts_cond;
 
-    if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
-                                 back_conditions, has_ts_cond, &edges, &num_edges)) {
+    if (find_trip_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
+                                num_conditions, front_conditions,
+                                back_conditions, has_ts_cond, &edges, &num_edges)) {
         change_train_array(sol, problem, &problem->trainset_types[old_ts_id], &problem->trainset_types[new_ts_id], old_ts_amount, new_ts_amount, edges, num_edges);
         result = 1;
     }
@@ -211,8 +213,8 @@ int change_part_capacity_dfs(Solution *sol, Problem *problem, int start_node_id,
 
     EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
 
-    if(find_train_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
-                                 has_ts_cond, has_ts_cond, allow_jumps, &edges, &num_edges)) {
+    if(find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
+                                has_ts_cond, has_ts_cond, allow_jumps, &edges, &num_edges)) {
         for (int i = 0; i < old_ts_amount; ++i) {
             remove_train_array(sol, problem, &problem->trainset_types[old_ts_id], edges, num_edges);
         }
@@ -322,8 +324,9 @@ int remove_part(Solution *sol, Problem *problem, int start_node_id, int end_node
     back_conditions[5] = has_ts_and_capacity_cond;
     back_conditions[6] = has_ts_cond;
 
-    if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
-                              back_conditions, has_ts_cond, &edges, &num_edges)) {
+    if (find_trip_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
+                                num_conditions, front_conditions,
+                                back_conditions, has_ts_cond, &edges, &num_edges)) {
         remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
         result = 1;
     }
@@ -344,8 +347,8 @@ int remove_part_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
 
     EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
 
-    if(find_train_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
-                              has_ts_cond, has_ts_cond, allow_jumps, &edges, &num_edges)) {
+    if(find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
+                                has_ts_cond, has_ts_cond, allow_jumps, &edges, &num_edges)) {
         remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
         result = 1;
     }
@@ -392,8 +395,9 @@ int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int
     EdgeCondition *back_conditions[4];
     back_conditions[0] = none_cond;
 
-    if (find_train_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id], num_conditions, front_conditions,
-                              back_conditions, has_ts_cond, &edges, &num_edges)) {
+    if (find_trip_between_nodes(sol, problem, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
+                                num_conditions, front_conditions,
+                                back_conditions, has_ts_cond, &edges, &num_edges)) {
         remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
         result = 1;
     }
