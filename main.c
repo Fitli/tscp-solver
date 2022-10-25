@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 #include "datatypes.h"
 #include "parse_config.h"
 #include "solution_modifier.h"
@@ -18,7 +19,7 @@
 #define NEIGHBORHOOD_SIZE 30
 #define ITERATIONS 5000
 #define TABU_SIZE 10
-#define SEED 3
+#define SEED 1
 #define PERTURBANCE_REMOVE_RATE 0.2
 #define PERTURBANCE_NO_NEW_BEST 800
 
@@ -218,7 +219,7 @@ void local_search(Problem *problem) {
     FILE *csv_operations = fopen("operations.csv", "w");
     fprintf(csv_operations, "iter,operation,tabu,obj_change\n");
 
-    empty_solution(&problem, &sol);
+    empty_solution(problem, &sol);
     printf("objective: %lld\n", sol.objective);
 
     int iteration = 0;
@@ -230,11 +231,11 @@ void local_search(Problem *problem) {
     int tabu_pos = 1;
     Solution new_sols [NEIGHBORHOOD_SIZE];
     for(int i = 0; i < NEIGHBORHOOD_SIZE; i++) {
-        empty_solution(&problem, new_sols + i);
+        empty_solution(problem, new_sols + i);
     }
     Solution overall_best;
-    empty_solution(&problem, &overall_best);
-    copy_solution(&problem, &sol, &overall_best);
+    empty_solution(problem, &overall_best);
+    copy_solution(problem, &sol, &overall_best);
     int overall_best_iter = 0;
     int last_perturbance_iter = 0;
     while(iteration-overall_best_iter < ITERATIONS) {
@@ -242,8 +243,8 @@ void local_search(Problem *problem) {
 
 
         if(iteration - overall_best_iter >= PERTURBANCE_NO_NEW_BEST && iteration - last_perturbance_iter >= PERTURBANCE_NO_NEW_BEST) {
-            copy_solution(&problem, &overall_best, &sol);
-            perturbate(&problem, &sol);
+            copy_solution(problem, &overall_best, &sol);
+            perturbate(problem, &sol);
             last_perturbance_iter = iteration;
         }
 
@@ -251,15 +252,15 @@ void local_search(Problem *problem) {
         while (local_counter < NEIGHBORHOOD_SIZE) {
             fprintf(csv_operations, "%d,", iteration);
 
-            copy_solution(&problem, &sol, new_sols + local_counter);
-            do_random_operation(&problem, new_sols + local_counter, csv_operations);
+            copy_solution(problem, &sol, new_sols + local_counter);
+            do_random_operation(problem, new_sols + local_counter, csv_operations);
 
-            if(!test_consistency(&problem, new_sols + local_counter)) {
+            if(!test_consistency(problem, new_sols + local_counter)) {
                 printf("unconsistent\n");
                 break;
             }
 
-            if(!test_objective(&problem, new_sols + local_counter)) {
+            if(!test_objective(problem, new_sols + local_counter)) {
                 printf("broken objective\n");
                 break;
             }
@@ -280,8 +281,8 @@ void local_search(Problem *problem) {
             long long updated_obj = new_sols[local_counter].objective;
 
             if(updated_obj != new_sols[local_counter].objective) {
-                print_problem(&problem, &new_sols[local_counter], "dot/broken_sol.dot", "broken");
-                return 0;
+                print_problem(problem, &new_sols[local_counter], "dot/broken_sol.dot", "broken");
+                return;
             }
 
             local_counter++;
@@ -305,37 +306,89 @@ void local_search(Problem *problem) {
             printf("%d\n", selected_index);
             selected_solution = &new_sols[selected_index];
         }*/
-        copy_solution(&problem, selected_solution, &sol);
+        copy_solution(problem, selected_solution, &sol);
         tabu[tabu_pos] = sol.objective;
         tabu_pos = (tabu_pos + 1) % TABU_SIZE;
         if(sol.objective < overall_best.objective) {
-            copy_solution(&problem, &sol, &overall_best);
+            copy_solution(problem, &sol, &overall_best);
             overall_best_iter = iteration;
         }
         fprintf(csv_objective, "%d, %lld\n", iteration, sol.objective);
         if(TO_DOT) {
             sprintf(dot_filename, "dot/update%04d.dot", iteration);
             sprintf(dot_title, "objective %lld, accepting", sol.objective);
-            print_problem(&problem, &sol, dot_filename, dot_title);
+            print_problem(problem, &sol, dot_filename, dot_title);
         }
         iteration++;
     }
 
     if(TO_DOT)
-        print_problem(&problem, &overall_best, "dot/solution.dot", "final");
+        print_problem(problem, &overall_best, "dot/solution.dot", "final");
 
     printf("best objective: %lld\n", overall_best.objective);
-    recalculate_objective(&overall_best, &problem);
-    printf("best objective: %lld\n", overall_best.objective);
-    analyze_solution(&overall_best, &problem);
-    destroy_solution(&problem, &sol);
-    destroy_solution(&problem, &overall_best);
+    recalculate_objective(&overall_best, problem);
+    analyze_solution(&overall_best, problem);
+    destroy_solution(problem, &sol);
+    destroy_solution(problem, &overall_best);
     for (int i = 0; i < NEIGHBORHOOD_SIZE; ++i) {
-        destroy_solution(&problem, new_sols + i);
+        destroy_solution(problem, new_sols + i);
     }
-    destroy_problem(&problem);
     fclose(csv_operations);
     fclose(csv_objective);
+}
+
+double anneal_accept_prob(long long int old_obj, long long int new_obj, double temperature) {
+    if(old_obj > new_obj) {
+        return 1;
+    }
+    if(old_obj == new_obj) {
+        //return 1;
+    }
+    if(temperature <= 0) {
+        return 0;
+    }
+    double metropolis = exp(-1 * (double) (new_obj-old_obj)/temperature);
+    printf("%f ", metropolis);
+    return metropolis;
+}
+
+void simulated_annealing(Problem *problem, Solution *sol, double init_temp, double temp_decrease, int max_iter) {
+    FILE *csv_objective = fopen("objective_annealing.csv", "w");
+    fprintf(csv_objective, "iter,obj\n");
+
+    Solution best;
+    Solution new;
+    empty_solution(problem, &best);
+    empty_solution(problem, &new);
+
+    double temp = init_temp;
+    int iter = 0;
+    int last_accept_iter = 0;
+    int best_iter = 0;
+    while (iter - last_accept_iter < 1000 && iter < max_iter) {
+        printf("%d %lld %f\n", iter, sol->objective, temp);
+        fprintf(csv_objective, "%d, %lld\n", iter, sol->objective);
+        copy_solution(problem, sol, &new);
+        do_random_operation(problem, &new, NULL);
+        if(anneal_accept_prob(sol->objective, new.objective, temp) > (double) rand()/RAND_MAX){
+            copy_solution(problem, &new, sol);
+            last_accept_iter = iter;
+            if(temp > 0) {
+                temp -= temp_decrease;
+            }
+        }
+        if(new.objective < best.objective) {
+            copy_solution(problem, &new, &best);
+            best_iter = iter;
+        }
+        iter++;
+    }
+
+    copy_solution(problem, &best, sol);
+
+    fclose(csv_objective);
+    destroy_solution(problem, &new);
+    destroy_solution(problem, &best);
 }
 
 int main() {
@@ -344,7 +397,22 @@ int main() {
     //parse("../../small_data_2_ts.cfg", &problem);
     parse("../../big_data_2_ts.cfg", &problem);
 
-    local_search(&problem);
+    //local_search(&problem);
+
+    Solution sol;
+    empty_solution(&problem, &sol);
+    simulated_annealing(&problem, &sol, 1000000000000, 10000000, 10000);
+    simulated_annealing(&problem, &sol, 1000000000, 500, 1000000000);
+
+
+    analyze_solution(&sol, &problem);
+
+    if(TO_DOT) {
+        print_problem(&problem, &sol, "final.dot", "final solution");
+    }
+    
+    destroy_solution(&problem, &sol);
+    destroy_problem(&problem);
 
     return 0;
 }

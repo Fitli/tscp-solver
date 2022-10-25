@@ -6,6 +6,10 @@
 #include "output.h"
 #include "objective.h"
 
+void print_objective(Solution *sol) {
+    printf("objective: %lld\n", sol->objective);;
+}
+
 void print_used_trainsets(Solution *sol, Problem *problem) {
     int num_ts[problem->num_trainset_types];
     get_num_ts(sol, problem, num_ts);
@@ -40,6 +44,7 @@ void print_soft_constraints(Solution *sol, Problem *problem) {
 }
 
 void analyze_solution(Solution *sol, Problem *problem) {
+    print_objective(sol);
     print_used_trainsets(sol, problem);
     print_soft_constraints(sol, problem);
 }
