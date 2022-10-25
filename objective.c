@@ -10,6 +10,19 @@
 #define CAPACITY_PENALTY 1000000000000
 #define MAX_LEN_PENALTY 1000000000000000
 
+void get_num_ts(Solution *sol, Problem *problem, int *num_ts) {
+    for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
+        num_ts[ts] = 0;
+    }
+
+    for (int st = 0; st < problem->num_stations; ++st) {
+        Edge *source_edge = problem->stations[st].source_node->out_waiting;
+        for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
+            num_ts[ts] += sol->edge_solution[source_edge->id].num_trainsets[ts];
+        }
+    }
+}
+
 void recalculate_objective(Solution *sol, Problem *problem) {
     sol->objective = 0;
     for (int ed_id = 0; ed_id < problem->num_edges; ed_id++) {
@@ -52,13 +65,11 @@ void recalculate_objective(Solution *sol, Problem *problem) {
     }
 
     // INVESTMENT COST
-    for (int i = 0; i < problem->num_stations; ++i) {
-        int source_edge_id = problem->stations[i].source_node->out_waiting->id;
-        for (int j = 0; j < problem->num_trainset_types; ++j) {
-            long long investment = sol->edge_solution[source_edge_id].num_trainsets[j]
-                                   * (long long) problem->trainset_types[j].investment;
-            sol->objective += (long long) ((double) investment * problem->mod_cost);
-        }
+    int num_ts[problem->num_trainset_types];
+    get_num_ts(sol, problem, num_ts);
+    for (int i = 0; i < problem->num_trainset_types; ++i) {
+        long long investment = num_ts[i] * (long long) problem->trainset_types[i].investment;
+        sol->objective += (long long) ((double) investment * problem->mod_cost);
     }
 }
 

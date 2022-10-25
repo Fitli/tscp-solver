@@ -233,9 +233,9 @@ void oper_remove_train(Solution *sol, Problem *problem, int station_id, int ts_i
                 problem->stations[station_id].sink_node->id, ts_id);
 }
 
-void oper_remove_train_dfs(Solution *sol, Problem *problem, int station_id, int ts_id) {
+int oper_remove_train_dfs(Solution *sol, Problem *problem, int station_id, int ts_id) {
     Station *station = &problem->stations[station_id];
-    remove_part_dfs(sol, problem, station->source_node->id, station->sink_node->id, ts_id, 1);
+    return remove_part_dfs(sol, problem, station->source_node->id, station->sink_node->id, ts_id, 1);
 }
 
 void oper_remove_train_pair(Solution *sol, Problem *problem, int station1_id, int station2_id, int ts_id) {
@@ -282,12 +282,13 @@ void oper_remove_train_with_edge(Solution *sol, Problem *problem, int edge_id, i
     free(edges);
 }
 
-void oper_remove_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+int oper_remove_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id, int ts_id) {
     Edge *edge = &problem->edges[edge_id];
-    if (remove_part_dfs(sol, problem, edge->end_node->id, edge->start_node->id, ts_id, 1)) {
+    int result = remove_part_dfs(sol, problem, edge->end_node->id, edge->start_node->id, ts_id, 1);
+    if (result) {
         remove_trainset_from_edge(sol, problem, &problem->trainset_types[ts_id], edge);
     }
-
+    return result;
 }
 
 int remove_part(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
@@ -347,10 +348,10 @@ int remove_part_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
 
     EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
 
-    if(find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
-                                has_ts_cond, has_ts_cond, allow_jumps, &edges, &num_edges)) {
+    result = find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
+                                      has_ts_cond, has_ts_cond, allow_jumps, &edges, &num_edges);
+    if(result) {
         remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
-        result = 1;
     }
 
     free(edges);

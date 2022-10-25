@@ -4,19 +4,11 @@
 
 #include <stdio.h>
 #include "output.h"
+#include "objective.h"
 
 void print_used_trainsets(Solution *sol, Problem *problem) {
     int num_ts[problem->num_trainset_types];
-    for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
-        num_ts[ts] = 0;
-    }
-
-    for (int st = 0; st < problem->num_stations; ++st) {
-        Edge *source_edge = problem->stations[st].source_node->out_waiting;
-        for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
-            num_ts[ts] += sol->edge_solution[source_edge->id].num_trainsets[ts];
-        }
-    }
+    get_num_ts(sol, problem, num_ts);
 
     for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
         printf("num ts of type %d: %d\n", ts, num_ts[ts]);

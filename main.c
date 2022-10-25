@@ -15,10 +15,12 @@
 
 #define TO_DOT 0
 #define IMPROVE_RATIO 1.1
-#define NUM_LOCAL_CHANGES 30
-#define NUM_RESTART_BEST 10000
+#define NEIGHBORHOOD_SIZE 30
+#define ITERATIONS 5000
 #define TABU_SIZE 10
-#define SEED 4
+#define SEED 3
+#define PERTURBANCE_REMOVE_RATE 0.2
+#define PERTURBANCE_NO_NEW_BEST 800
 
 void print_in_out(Problem *problem) {
     for (int i = 0; i < problem->num_stations; i++) {
@@ -143,12 +145,70 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
     //printf("%s\n", operation_name);
 }
 
+void initial_add(Problem *problem, Solution *sol) {
+    char dot_filename[255];
+    char dot_title[255];
 
-int main() {
-    srand(SEED);
-    Problem problem;
-    parse("../../big_data.cfg", &problem);
-    //parse("../../small_data.cfg", &problem);
+    for(int i = 0; i < 1000; i++) {
+        printf("iteration %d:\n", i);
+        int station_id = -1;
+        if(i%2 == 0) {
+            station_id = select_station_first_empty_departure(problem, sol);
+        }else{
+            station_id = select_station_last_empty_arrival(problem, sol);
+        }
+
+        if(station_id == -1) {
+            break;
+        }
+        printf("add a train beginning in %d\n", station_id);
+
+        oper_add_train_to_empty(sol, problem, station_id);
+
+        if(TO_DOT) {
+            sprintf(dot_filename, "dot/init%03d.dot", i);
+            sprintf(dot_title, "initial adding to %d", station_id);
+            print_problem(problem, sol, dot_filename, dot_title);
+        }
+
+        if(!test_consistency(problem, sol)) {
+            break;
+        }
+
+        printf("objective: %lld\n", sol->objective);
+        int empty_subcons = 0;
+        for (int j = 0; j < problem->num_edges; j++) {
+            if(problem->edges[j].type == SUBCONNECTION && sol->edge_solution[j].capacity == 0) {
+                empty_subcons++;
+                if(i > 998) {
+                    printf("st %d t %ld ->st %d t %ld \n", problem->edges[j].start_node->station->id,
+                           problem->edges[j].start_node->time, problem->edges[j].end_node->station->id,
+                           problem->edges[j].end_node->time);
+                }
+            }
+        }
+        printf("num_empty = %d\n", empty_subcons);
+    }
+}
+
+void perturbate(Problem *problem, Solution *solution) {
+    int num_ts[problem->num_trainset_types];
+    get_num_ts(solution, problem, num_ts);
+    int overall_num_ts = 0;
+    for (int i = 0; i < problem->num_trainset_types; ++i) {
+        overall_num_ts += num_ts[i];
+    }
+
+    int to_remove = (int) (overall_num_ts * PERTURBANCE_REMOVE_RATE);
+    int removed = 0;
+    while(removed < to_remove) {
+        int rand_st_id = rand() % problem->num_stations;
+        int rand_ts_id = rand() % problem->num_trainset_types;
+        removed += oper_remove_train_dfs(solution, problem, rand_st_id, rand_ts_id);
+    }
+}
+
+void local_search(Problem *problem) {
     Solution sol;
     char dot_filename[255];
     char dot_title[255];
@@ -160,44 +220,6 @@ int main() {
 
     empty_solution(&problem, &sol);
     printf("objective: %lld\n", sol.objective);
-    /*for(int i = 0; i < 1000; i++) {
-        printf("iteration %d:\n", i);
-        int station_id = -1;
-        if(i%2 == 0) {
-            station_id = select_station_first_empty_departure(&problem, &sol);
-        }else{
-            station_id = select_station_last_empty_arrival(&problem, &sol);
-        }
-
-        if(station_id == -1) {
-            break;
-        }
-        printf("add a train beginning in %d\n", station_id);
-
-        oper_add_train_to_empty(&sol, &problem, station_id);
-
-        if(TO_DOT) {
-            sprintf(dot_filename, "dot/init%03d.dot", i);
-            sprintf(dot_title, "initial adding to %d", station_id);
-            print_problem(&problem, &sol, dot_filename, dot_title);
-        }
-
-        if(!test_consistency(&problem, &sol)) {
-            break;
-        }
-
-        printf("objective: %lld\n", sol.objective);
-        int empty_subcons = 0;
-        for (int j = 0; j < problem.num_edges; j++) {
-            if(problem.edges[j].type == SUBCONNECTION && sol.edge_solution[j].capacity == 0) {
-                empty_subcons++;
-                if(i > 998) {
-                    printf("st %d t %ld ->st %d t %ld \n", problem.edges[j].start_node->station->id, problem.edges[j].start_node->time, problem.edges[j].end_node->station->id, problem.edges[j].end_node->time);
-                }
-            }
-        }
-        printf("num_empty = %d\n", empty_subcons);
-    }*/
 
     int iteration = 0;
     long long int tabu[TABU_SIZE];
@@ -206,17 +228,27 @@ int main() {
         tabu[i] = 0;
     }
     int tabu_pos = 1;
-    Solution new_sols [NUM_LOCAL_CHANGES];
-    for(int i = 0; i < NUM_LOCAL_CHANGES; i++) {
+    Solution new_sols [NEIGHBORHOOD_SIZE];
+    for(int i = 0; i < NEIGHBORHOOD_SIZE; i++) {
         empty_solution(&problem, new_sols + i);
     }
     Solution overall_best;
     empty_solution(&problem, &overall_best);
     copy_solution(&problem, &sol, &overall_best);
-    while(iteration < NUM_RESTART_BEST) {
+    int overall_best_iter = 0;
+    int last_perturbance_iter = 0;
+    while(iteration-overall_best_iter < ITERATIONS) {
         printf("%d\n", iteration);
+
+
+        if(iteration - overall_best_iter >= PERTURBANCE_NO_NEW_BEST && iteration - last_perturbance_iter >= PERTURBANCE_NO_NEW_BEST) {
+            copy_solution(&problem, &overall_best, &sol);
+            perturbate(&problem, &sol);
+            last_perturbance_iter = iteration;
+        }
+
         int local_counter = 0;
-        while (local_counter < NUM_LOCAL_CHANGES) {
+        while (local_counter < NEIGHBORHOOD_SIZE) {
             fprintf(csv_operations, "%d,", iteration);
 
             copy_solution(&problem, &sol, new_sols + local_counter);
@@ -254,15 +286,31 @@ int main() {
 
             local_counter++;
         }
-        qsort(new_sols, NUM_LOCAL_CHANGES, sizeof(Solution), cmpfunc);
+        qsort(new_sols, NEIGHBORHOOD_SIZE, sizeof(Solution), cmpfunc);
 
         Solution *selected_solution = &new_sols[0];
-        //Solution *selected_solution = &new_sols[random_1_over_square(NUM_LOCAL_CHANGES)];
+
+        /*Solution *selected_solution;
+        if(new_sols[0].objective > sol.objective) {
+            selected_solution = &new_sols[0];
+        }
+        else {
+            int num_improving = 0;
+            for (; num_improving < NEIGHBORHOOD_SIZE; ++num_improving) {
+                if(new_sols[num_improving].objective > sol.objective) {
+                    break;
+                }
+            }
+            int selected_index = random_1_over_square(num_improving);
+            printf("%d\n", selected_index);
+            selected_solution = &new_sols[selected_index];
+        }*/
         copy_solution(&problem, selected_solution, &sol);
         tabu[tabu_pos] = sol.objective;
         tabu_pos = (tabu_pos + 1) % TABU_SIZE;
         if(sol.objective < overall_best.objective) {
             copy_solution(&problem, &sol, &overall_best);
+            overall_best_iter = iteration;
         }
         fprintf(csv_objective, "%d, %lld\n", iteration, sol.objective);
         if(TO_DOT) {
@@ -282,11 +330,21 @@ int main() {
     analyze_solution(&overall_best, &problem);
     destroy_solution(&problem, &sol);
     destroy_solution(&problem, &overall_best);
-    for (int i = 0; i < NUM_LOCAL_CHANGES; ++i) {
+    for (int i = 0; i < NEIGHBORHOOD_SIZE; ++i) {
         destroy_solution(&problem, new_sols + i);
     }
     destroy_problem(&problem);
     fclose(csv_operations);
     fclose(csv_objective);
+}
+
+int main() {
+    srand(SEED);
+    Problem problem;
+    //parse("../../small_data_2_ts.cfg", &problem);
+    parse("../../big_data_2_ts.cfg", &problem);
+
+    local_search(&problem);
+
     return 0;
 }

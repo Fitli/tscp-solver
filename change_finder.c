@@ -561,7 +561,8 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
  * @param allow_jumps if 1, it is alloved to jump between evening and morning in the same station
  * @param[out] edges dynamically alocated array with edges in the trip.
  * @param[out] num_edges number of edges in `edges`
- * @return 1 if found a trip, 0 otherwise
+ * @return if the resulting trip contains at leadst 1 SOURCE edge, then the number of SOURCE edges in the result.
+ *         Otherwise 1 if a trip was found and 0 if not.
  */
 int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_jumps,
@@ -613,13 +614,19 @@ int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node,
         }
     }
 
+    int result = 0;
     if(buffer_size > 0) {
         *edges = malloc(buffer_size * sizeof(Edge*));
         *num_edges = buffer_size;
         for (int i = 0; i < buffer_size; ++i) {
             (*edges)[i] = buffer[i];
+            if(buffer[i]->type == SOURCE_EDGE) {
+                result++;
+            }
         }
-        return 1;
+        if(result == 0) {
+            result = 1; // case when the trip contains no source edges, but some trip was found.
+        }
     }
-    return 0;
+    return result;
 }
