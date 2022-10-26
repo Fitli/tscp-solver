@@ -27,6 +27,7 @@ int empty_solution(Problem *problem, Solution *sol) {
             return EXIT_FAILURE;
         }
     }
+    sol->num_trainstes = calloc(problem->num_trainset_types, sizeof(int));
     recalculate_objective(sol, problem);
 }
 
@@ -38,6 +39,9 @@ void copy_solution(Problem *problem, Solution *orig_sol, Solution *dest_sol) {
             dest_sol->edge_solution[edge_id].num_trainsets[ts_id] = orig_sol->edge_solution[edge_id].num_trainsets[ts_id];
         }
     }
+    for (int i = 0; i < problem->num_trainset_types; ++i) {
+        dest_sol->num_trainstes[i] = orig_sol->num_trainstes[i];
+    }
 }
 
 void destroy_solution(Problem *problem, Solution *sol) {
@@ -45,4 +49,5 @@ void destroy_solution(Problem *problem, Solution *sol) {
         free(sol->edge_solution[i].num_trainsets);
     }
     free(sol->edge_solution);
+    free(sol->num_trainstes);
 }

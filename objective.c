@@ -10,15 +10,15 @@
 #define CAPACITY_PENALTY 1000000000000
 #define MAX_LEN_PENALTY 1000000000000000
 
-void get_num_ts(Solution *sol, Problem *problem, int *num_ts) {
+void get_num_ts(Solution *sol, Problem *problem) {
     for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
-        num_ts[ts] = 0;
+        sol->num_trainstes[ts] = 0;
     }
 
     for (int st = 0; st < problem->num_stations; ++st) {
         Edge *source_edge = problem->stations[st].source_node->out_waiting;
         for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
-            num_ts[ts] += sol->edge_solution[source_edge->id].num_trainsets[ts];
+            sol->num_trainstes[ts] += sol->edge_solution[source_edge->id].num_trainsets[ts];
         }
     }
 }
@@ -65,10 +65,9 @@ void recalculate_objective(Solution *sol, Problem *problem) {
     }
 
     // INVESTMENT COST
-    int num_ts[problem->num_trainset_types];
-    get_num_ts(sol, problem, num_ts);
+    get_num_ts(sol, problem);
     for (int i = 0; i < problem->num_trainset_types; ++i) {
-        long long investment = num_ts[i] * (long long) problem->trainset_types[i].investment;
+        long long investment = sol->num_trainstes[i] * (long long) problem->trainset_types[i].investment;
         sol->objective += (long long) ((double) investment * problem->mod_cost);
     }
 }
@@ -77,7 +76,9 @@ void recalculate_objective(Solution *sol, Problem *problem) {
  * Update solution objective function after adding a trainset to an edge. Called BEFORE the traiset is really added.
  */
 void update_obj_add_ts_to_edge(Solution *sol, const Problem *problem, const Trainset *ts, const Edge *edge) {
+    //ADDING NEW TS
     if(edge->type == SOURCE_EDGE) {
+        sol->num_trainstes[ts->id]++;
         sol->objective += (long long) ((double) ts->investment * problem->mod_cost);
     }
 
@@ -123,7 +124,9 @@ void update_obj_add_ts_to_edge(Solution *sol, const Problem *problem, const Trai
  * Update solution objective function after removing a trainset from an edge. Called BEFORE the trainset is really removed.
  */
 void update_obj_remove_ts_from_edge(Solution *sol, const Problem *problem, const Trainset *ts, const Edge *edge) {
+    //REMOVING TS
     if(edge->type == SOURCE_EDGE) {
+        sol->num_trainstes[ts->id]--;
         sol->objective -= (long long) ((double) ts->investment * problem->mod_cost);
     }
 

@@ -11,11 +11,8 @@ void print_objective(Solution *sol) {
 }
 
 void print_used_trainsets(Solution *sol, Problem *problem) {
-    int num_ts[problem->num_trainset_types];
-    get_num_ts(sol, problem, num_ts);
-
     for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
-        printf("num ts of type %d: %d\n", ts, num_ts[ts]);
+        printf("num ts of type %d: %d\n", ts, sol->num_trainstes[ts]);
     }
 }
 
