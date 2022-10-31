@@ -464,3 +464,100 @@ void oper_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_i
     if(selected_edge_id >= 0)
         move_to_other_subcon(sol, problem, &problem->trainset_types[ts_id], &problem->edges[edge_id], &problem->edges[selected_edge_id]);
 }
+
+void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) {
+    int r = rand() % 20;
+    int rand_st = rand() % problem->num_stations;
+    int rand_st2 = rand() % problem->num_stations;
+    int rand_edge = rand() % problem->num_edges;
+    int rand_start_node_index = rand() % (problem->stations[rand_st].num_nodes - 1);
+    int rand_start_node = problem->stations[rand_st].node_ids[rand_start_node_index];
+    int rand_end_node_index = rand_start_node_index + 1 + rand() % (problem->stations[rand_st].num_nodes - rand_start_node_index - 1);
+    int rand_end_node = problem->stations[rand_st].node_ids[rand_end_node_index];
+    int rand_ts = rand() % problem->num_trainset_types;
+    int rand_ts2 = rand() % problem->num_trainset_types;
+    char *operation_name;
+    switch(r) {
+        case 0:
+            operation_name = "add train";
+            oper_add_train_later(sol, problem, rand_st, rand_ts);
+            break;
+        case 1:
+            operation_name = "remove train";
+            oper_remove_train(sol, problem, rand_st, rand_ts);
+            break;
+        case 2:
+            operation_name = "remove waiting train";
+            oper_remove_waiting_train(sol, problem, rand_st, rand_ts);
+            break;
+        case 3:
+            operation_name = "change train";
+            oper_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 1, 1);
+            break;
+        case 4:
+            operation_name = "move edge back";
+            oper_move_edge_back(sol, problem, rand_edge, rand_ts);
+            break;
+        case 5:
+            operation_name = "move edge front";
+            //oper_move_edge_front(sol, problem, rand_edge, rand_ts);
+            break;
+        case 6:
+            operation_name = "change train 2:1";
+            oper_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 2, 1);
+            break;
+        case 7:
+            operation_name = "change train 1:2";
+            oper_change_train_capacity(sol, problem, rand_st, rand_ts, rand_ts2, 1, 2);
+            break;
+        case 8:
+            operation_name = "add train pair";
+            oper_add_train_pair_later(sol, problem, rand_st, rand_st2, rand_ts);
+            break;
+        case 9:
+            operation_name = "change train pair capacity";
+            oper_change_train_pair_capacity(sol, problem, rand_st, rand_st2, rand_ts, rand_ts2, 1, 1);
+            break;
+        case 10:
+            operation_name = "reschedule_w_l";
+            oper_reschedule_w_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
+            break;
+        case 11:
+            operation_name = "remove train pair";
+            oper_remove_train_pair(sol, problem, rand_st, rand_st2, rand_ts);
+            break;
+        case 12:
+        case 13:
+            operation_name = "reschedule_n_l";
+            oper_reschedule_n_l(sol, problem, rand_start_node, rand_end_node, rand_ts);
+            break;
+        case 14:
+            operation_name = "add_to_empty";
+            oper_add_train_to_empty(sol, problem, rand_st);
+            break;
+        case 15:
+            operation_name = "add with edge";
+            oper_add_train_with_edge(sol, problem, rand_edge, rand_ts);
+            break;
+        case 16:
+            operation_name = "remove with edge";
+            oper_remove_train_with_edge(sol, problem, rand_edge, rand_ts);
+            break;
+        case 17:
+            operation_name = "remove dfs";
+            oper_remove_train_dfs(sol, problem, rand_st, rand_ts);
+            break;
+        case 18:
+            operation_name = "change dfs";
+            oper_change_train_capacity_dfs(sol, problem, rand_st, rand_ts, rand_ts2, 1, 1);
+            break;
+        default:
+            operation_name = "reschedule_n_w";
+            oper_reschedule_n_w(sol, problem, rand_start_node, rand_end_node, rand_ts);
+            break;
+    }
+    if(operation_data) {
+        fprintf(operation_data, "%s,", operation_name);
+    }
+    //printf("%s\n", operation_name);
+}

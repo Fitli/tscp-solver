@@ -40,6 +40,10 @@ void print_problem(Problem* problem, Solution *sol, const char* output_filename,
         if(capacity < problem->edges[i].minimal_capacity) {
             fprintf(file, "\t%d -> %d [penwidth=3];\n", problem->edges[i].start_node->id, problem->edges[i].end_node->id);
         }
+
+        if(capacity > problem->edges[i].minimal_capacity + problem->trainset_types[1].seats - problem->trainset_types[0].seats) {
+            fprintf(file, "\t%d -> %d [penwidth=3; style=dotted];\n", problem->edges[i].start_node->id, problem->edges[i].end_node->id);
+        }
     }
     fprintf(file, "}");
     fclose(file);

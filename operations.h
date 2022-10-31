@@ -24,6 +24,7 @@ void oper_reschedule_n_l(Solution *sol, Problem *problem, int start_node_id, int
 void oper_reschedule_n_w(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 void oper_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id);
 void oper_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id);
+void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data);
 
 
 #endif //TSCP_SOLVER_ACTIONS_H

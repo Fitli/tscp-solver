@@ -94,7 +94,7 @@ struct Problem {
 
     Trainset *trainset_types;
     Node *nodes;
-    Station* stations; // array of all stations [0] is source, [1]-[num_stations] regular stations, [num_stations + 1] is sink
+    Station* stations;
     Edge* edges; //array of all subconections
     Connection* connections; // array of all connections
 };
