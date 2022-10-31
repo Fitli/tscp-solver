@@ -15,6 +15,7 @@
 #include "output.h"
 #include "simmulated_annealing.h"
 #include "local_search.h"
+#include "constructive_alg.h"
 
 #define TO_DOT 1
 #define SEED 4
@@ -39,6 +40,8 @@ int main() {
     Solution sol;
     empty_solution(&problem, &sol);
 
+    //constructive_alg(&sol, &problem, 10000000);
+
     simulated_annealing(&problem, &sol, 100000000000000, 100000, 100000, csv, inittime);
     simulated_annealing(&problem, &sol, 1000000000, 500, 1000000000, csv, inittime);
     long long int old_obj = sol.objective;
@@ -59,6 +62,7 @@ int main() {
     } while(sol.objective < old_obj);
 
     printf("iters: %d\n", big_iters);
+
     //local_search(&problem, &sol, 10, 30, 2000);
 
     analyze_solution(&sol, &problem);

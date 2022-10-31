@@ -121,6 +121,19 @@ void oper_add_train_with_edge(Solution *sol, Problem *problem, int edge_id, int 
     free(edges);
 }
 
+void oper_add_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+    Edge *edge = &problem->edges[edge_id];
+    Edge **edges;
+    int num_edges;
+
+    find_trip_randomized_dfs(problem, sol, edge->end_node, edge->start_node,
+                             NULL, NULL, 1, &edges, &num_edges);
+    add_train_array(sol, problem,  &problem->trainset_types[ts_id], edges, num_edges);
+    add_trainset_to_edge(sol, problem, &problem->trainset_types[ts_id], edge);
+
+    free(edges);
+}
+
 void oper_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
     Node *start_node = &problem->nodes[start_node_id];
     Node *end_node = &problem->nodes[end_node_id];
@@ -145,6 +158,25 @@ void oper_change_train_capacity_dfs(Solution *sol, Problem *problem, int station
     Station *station = &problem->stations[station_id];
     change_part_capacity_dfs(sol, problem, station->source_node->id, station->sink_node->id,
                              old_ts_id, new_ts_id, old_ts_amount, new_ts_amount, 1);
+}
+
+int oper_change_train_capacity_dfs_with_edge(Solution *sol, Problem *problem, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount, int edge_id) {
+    if(sol->edge_solution[edge_id].num_trainsets[old_ts_id] < old_ts_amount) {
+        return 0;
+    }
+    Edge *edge = &problem->edges[edge_id];
+    int result = change_part_capacity_dfs(sol, problem, edge->end_node->id, edge->start_node->id,
+                             old_ts_id, new_ts_id, old_ts_amount, new_ts_amount, 1);
+
+    if (result) {
+        for (int i = 0; i < old_ts_amount; ++i) {
+            remove_trainset_from_edge(sol, problem, &problem->trainset_types[old_ts_id], edge);
+        }
+        for (int i = 0; i < old_ts_amount; ++i) {
+            add_trainset_to_edge(sol, problem, &problem->trainset_types[new_ts_id], edge);
+        }
+    }
+    return result;
 }
 
 void oper_change_train_pair_capacity(Solution *sol, Problem *problem, int station1_id, int station2_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount) {
@@ -283,6 +315,9 @@ void oper_remove_train_with_edge(Solution *sol, Problem *problem, int edge_id, i
 }
 
 int oper_remove_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id, int ts_id) {
+    if(sol->edge_solution[edge_id].num_trainsets[ts_id] == 0) {
+        return 0;
+    }
     Edge *edge = &problem->edges[edge_id];
     int result = remove_part_dfs(sol, problem, edge->end_node->id, edge->start_node->id, ts_id, 1);
     if (result) {
@@ -358,8 +393,8 @@ int remove_part_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
     return result;
 }
 
-void oper_remove_waiting_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
-    destroy_part_waiting(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
+int oper_remove_waiting_train(Solution *sol, Problem *problem, int station_id, int ts_id) {
+    return destroy_part_waiting(sol, problem, problem->stations[station_id].source_node->id, problem->stations[station_id].sink_node->id, ts_id);
 }
 
 void oper_reschedule_w_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
@@ -466,7 +501,7 @@ void oper_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_i
 }
 
 void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) {
-    int r = rand() % 20;
+    int r = rand() % 22;
     int rand_st = rand() % problem->num_stations;
     int rand_st2 = rand() % problem->num_stations;
     int rand_edge = rand() % problem->num_edges;
@@ -499,8 +534,8 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
             oper_move_edge_back(sol, problem, rand_edge, rand_ts);
             break;
         case 5:
-            operation_name = "move edge front";
-            //oper_move_edge_front(sol, problem, rand_edge, rand_ts);
+            operation_name = "remove dfs edge";
+            oper_remove_train_with_edge_dfs(sol, problem, rand_edge, rand_ts);
             break;
         case 6:
             operation_name = "change train 2:1";
@@ -550,6 +585,10 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
         case 18:
             operation_name = "change dfs";
             oper_change_train_capacity_dfs(sol, problem, rand_st, rand_ts, rand_ts2, 1, 1);
+            break;
+        case 19:
+            operation_name = "add edge dfs";
+            oper_add_train_with_edge_dfs(sol, problem, rand_edge, rand_ts);
             break;
         default:
             operation_name = "reschedule_n_w";
