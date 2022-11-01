@@ -62,8 +62,14 @@ int main() {
     } while(sol.objective < old_obj);
 
     printf("iters: %d\n", big_iters);
+    printf("time: %f s\n", (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
 
     //local_search(&problem, &sol, 10, 30, 2000);
+
+    //sol = read_sol_from_csv(&problem, "../../sol_cplex_small.csv");
+
+    test_consistency(&problem, &sol);
+    test_objective(&problem, &sol);
 
     analyze_solution(&sol, &problem);
 

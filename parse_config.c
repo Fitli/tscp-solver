@@ -3,6 +3,7 @@
 //
 
 #include "parse_config.h"
+#include "objective.h"
 #include <libconfig.h>
 #include <stdlib.h>
 
@@ -398,4 +399,25 @@ int parse(const char* file, Problem *problem) {
     printf("Config successfully parsed\n");
 
     return(EXIT_SUCCESS);
+}
+
+Solution read_sol_from_csv(Problem *problem, char *filename) {
+    FILE *f = fopen(filename, "r");
+    Solution sol;
+    empty_solution(problem, &sol);
+
+    for (int i = 0; i < problem->num_edges; ++i) {
+        for (int j = 0; j < problem->num_trainset_types-1; ++j) {
+            fscanf(f, "%d,", &sol.edge_solution[i].num_trainsets[j]);
+        }
+        fscanf(f, "%d\n", &sol.edge_solution[i].num_trainsets[problem->num_trainset_types-1]);
+
+        for (int j = 0; j < problem->num_trainset_types; ++j) {
+            sol.edge_solution[i].capacity += sol.edge_solution[i].num_trainsets[j] * problem->trainset_types[j].seats;
+        }
+    }
+    recalculate_objective(&sol, problem);
+
+    fclose(f);
+    return sol;
 }
