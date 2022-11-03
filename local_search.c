@@ -33,12 +33,7 @@ void perturbate(Problem *problem, Solution *solution, double remove_rate) {
     }
 }
 
-void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int stop_no_improve) {
-
-    FILE *csv_objective = fopen("objective.csv", "w");
-    fprintf(csv_objective, "iter,obj\n");
-    FILE *csv_operations = fopen("operations.csv", "w");
-    fprintf(csv_operations, "iter,operation,taboo,obj_change\n");
+void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int stop_no_improve, clock_t inittime, FILE *csv_objective, FILE *csv_operations) {
 
     printf("objective: %lld\n", sol->objective);
 
@@ -63,7 +58,9 @@ void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborh
 
         int local_counter = 0;
         while (local_counter < neighborhood_size) {
-            fprintf(csv_operations, "%d,", iteration);
+            if(csv_operations) {
+                fprintf(csv_operations, "%d,", iteration);
+            }
 
             copy_solution(problem, sol, new_sols + local_counter);
             do_random_operation(problem, new_sols + local_counter, csv_operations);
@@ -76,10 +73,14 @@ void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborh
                 }
             }
             if(is_tabu) {
-                fprintf(csv_operations, "1,0\n");
+                if(csv_operations) {
+                    fprintf(csv_operations, "1,0\n");
+                }
                 continue;
             }
-            fprintf(csv_operations, "0,%lld\n", new_sols[local_counter].objective - sol->objective);
+            if(csv_operations) {
+                fprintf(csv_operations, "0,%lld\n", new_sols[local_counter].objective - sol->objective);
+            }
 
             local_counter++;
         }
@@ -94,7 +95,7 @@ void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborh
             copy_solution(problem, sol, &overall_best);
             overall_best_iter = iteration;
         }
-        fprintf(csv_objective, "%d, %lld\n", iteration, sol->objective);
+        fprintf(csv_objective, "%d,%lld,%f\n", iteration, sol->objective, (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
         iteration++;
     }
 
@@ -102,6 +103,4 @@ void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborh
     for (int i = 0; i < neighborhood_size; ++i) {
         destroy_solution(problem, new_sols + i);
     }
-    fclose(csv_operations);
-    fclose(csv_objective);
 }

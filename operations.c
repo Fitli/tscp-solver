@@ -126,12 +126,13 @@ void oper_add_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id, 
     Edge **edges;
     int num_edges;
 
-    find_trip_randomized_dfs(problem, sol, edge->end_node, edge->start_node,
-                             NULL, NULL, 1, &edges, &num_edges);
-    add_train_array(sol, problem,  &problem->trainset_types[ts_id], edges, num_edges);
-    add_trainset_to_edge(sol, problem, &problem->trainset_types[ts_id], edge);
+    if(find_trip_randomized_dfs(problem, sol, edge->end_node, edge->start_node,
+                             NULL, NULL, 1, &edges, &num_edges)) {
+        add_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
+        add_trainset_to_edge(sol, problem, &problem->trainset_types[ts_id], edge);
 
-    free(edges);
+        free(edges);
+    }
 }
 
 void oper_insert_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {

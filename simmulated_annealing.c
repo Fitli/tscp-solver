@@ -38,7 +38,10 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         printf("%d %lld %f %d %d\n", iter, sol->objective, temp, sol->num_trainstes[0], sol->num_trainstes[1]);
         fflush(stdout);
         copy_solution(problem, sol, &new);
-        do_random_operation(problem, &new, csv);
+        if(iter%1000==0)
+            do_random_operation(problem, &new, csv);
+        else
+            do_random_operation(problem, &new, NULL);
         bool accepting = anneal_accept_prob(sol->objective, new.objective, temp) > (double) rand()/RAND_MAX;
         if(accepting){
             copy_solution(problem, &new, sol);
@@ -48,7 +51,7 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
             copy_solution(problem, &new, &best);
             best_iter = iter;
         }
-        if(csv) {
+        if(csv && iter%1000==0) {
             fprintf(csv, "%d, %lld, %f, %f, ", accepting, sol->objective,temp,
                     (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
             for (int i = 0; i < problem->num_trainset_types; ++i) {

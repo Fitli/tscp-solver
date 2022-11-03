@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "output.h"
 #include "objective.h"
+#include "test.h"
 
 void print_objective(Solution *sol) {
     printf("objective: %lld\n", sol->objective);;
@@ -41,6 +42,8 @@ void print_soft_constraints(Solution *sol, Problem *problem) {
 }
 
 void analyze_solution(Solution *sol, Problem *problem) {
+    test_consistency(problem, sol);
+    test_objective(problem, sol);
     print_objective(sol);
     print_used_trainsets(sol, problem);
     print_soft_constraints(sol, problem);
