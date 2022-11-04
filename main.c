@@ -16,8 +16,9 @@
 #include "simmulated_annealing.h"
 #include "local_search.h"
 #include "constructive_alg.h"
+#include "min_flow.h"
 
-#define TO_DOT 0
+#define TO_DOT 1
 #define SEED 4
 //#define DATASET "../../small_data_2_ts.cfg"
 #define DATASET "../../big_data_2_ts.cfg"
@@ -110,7 +111,9 @@ void annealing_main() {
     clock_t inittime = clock();
 
     Solution sol;
-    empty_solution(&problem, &sol);
+    //empty_solution(&problem, &sol);
+
+    sol = min_flow(&problem, &problem.trainset_types[1]);
 
     simulated_annealing(&problem, &sol, 100000000000000, 100000, 1000, csv, inittime);
     simulated_annealing(&problem, &sol, 1000000000, 1000, 1000000000, csv, inittime);
@@ -187,7 +190,25 @@ void mixed_main() {
     destroy_problem(&problem);
 }
 
+int min_flow_main() {
+    srand(SEED);
+
+    Problem problem;
+    parse(DATASET, &problem);
+
+    Solution sol = min_flow(&problem, &problem.trainset_types[1]);
+
+    analyze_solution(&sol, &problem);
+
+    if(TO_DOT) {
+        print_problem(&problem, &sol, "minflow.dot", "minflow");
+    }
+
+    destroy_solution(&problem, &sol);
+    destroy_problem(&problem);
+}
+
 int main() {
-    mixed_main();
+    read_solution_main();
     return 0;
 }
