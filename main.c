@@ -1,17 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <math.h>
 #include "datatypes.h"
 #include "parse_input.h"
-#include "solution_modifier.h"
-#include "heuristics.h"
-#include "change_finder.h"
 #include "test.h"
 #include "operations.h"
 #include "dot_printer.h"
-#include "random.h"
-#include "objective.h"
 #include "output.h"
 #include "simmulated_annealing.h"
 #include "local_search.h"
@@ -76,8 +70,6 @@ void constructive_main() {
 
     Problem problem;
     parse_problem(DATASET, &problem);
-
-    clock_t inittime = clock();
 
     Solution sol;
     empty_solution(&problem, &sol);

@@ -103,7 +103,7 @@ int select_station_random(Problem *problem, Solution *solution) {
 /*
  * EDGES
  */
-int eval_edge_condition(struct EdgeCondition *cond, Edge *edge, EdgeSolution *sol){
+int eval_edge_condition(const EdgeCondition *cond, const Edge *edge, const EdgeSolution *sol){
     int result = 1;
     while(cond != NULL && result) {
         result = cond->predicate(edge, sol, cond->a_data);
@@ -112,7 +112,7 @@ int eval_edge_condition(struct EdgeCondition *cond, Edge *edge, EdgeSolution *so
     return result;
 }
 
-EdgeCondition *create_edge_condition(int (*predicate)(Edge *, EdgeSolution *, void *), void *a_data, EdgeCondition *conj) {
+EdgeCondition *create_edge_condition(int (*predicate)(const Edge *, const EdgeSolution *, void *), void *a_data, EdgeCondition *conj) {
     EdgeCondition *result = malloc(sizeof(EdgeCondition));
     result->predicate = predicate;
     result->a_data = a_data;
@@ -128,15 +128,15 @@ void free_edge_conditions(EdgeCondition *cond) {
     }
 }
 
-int edge_is_empty(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_is_empty(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     return sol->capacity == 0;
 }
 
-int edge_needs_more_ts(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_needs_more_ts(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     return sol->capacity < edge->minimal_capacity;
 }
 
-int edge_enough_capacity(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_enough_capacity(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     int capacity_change = 0;
     if (a_data) {
         capacity_change = *(int *) a_data;
@@ -144,31 +144,31 @@ int edge_enough_capacity(Edge *edge, EdgeSolution *sol, void *a_data) {
     return sol->capacity + capacity_change > edge->minimal_capacity;
 }
 
-int edge_any(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_any(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     return 1;
 }
 
-int edge_none(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_none(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     return 0;
 }
 
-int edge_has_trainset(Edge *edge, EdgeSolution *sol, void *a_data) { // a_data is an two-member array containing id of trainset and the minimal amount
+int edge_has_trainset(const Edge *edge, const EdgeSolution *sol, void *a_data) { // a_data is an two-member array containing id of trainset and the minimal amount
     int ts = *(int *) a_data;
     int amount = *((int *) a_data + 1);
     return sol->num_trainsets[ts] >= amount;
 }
 
-int edge_ends_in_station(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_ends_in_station(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     int station = *(int *) a_data;
     return edge->end_node->station->id == station;
 }
 
-int edge_start_in_station(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_start_in_station(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     int station = *(int *) a_data;
     return edge->start_node->station->id == station;
 }
 
-int edge_has_more_ts_than(Edge *edge, EdgeSolution *sol, void *a_data) {
+int edge_has_more_ts_than(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     int num = *(int *) a_data;
     int n_ts = 0;
     for (int i = 0; i < sizeof(sol->num_trainsets)/sizeof(int*); ++i) {

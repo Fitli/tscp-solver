@@ -2,11 +2,9 @@
 // Created by fitli on 03.04.22.
 //
 
-#include <stdio.h>
 #include "objective.h"
 #include "datatypes.h"
 
-//TODO zadefinovat na lepším místě
 #define CAPACITY_PENALTY (long long) 1e12
 #define MAX_LEN_PENALTY (long long) 1e15
 

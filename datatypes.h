@@ -62,7 +62,7 @@ struct Node {
     Edge *out_subcon;
 
     Station* station;
-    time_t time;
+    int time;
 };
 
 struct Problem {

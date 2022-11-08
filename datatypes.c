@@ -32,6 +32,7 @@ int empty_solution(Problem *problem, Solution *sol) {
     }
     sol->num_trainstes = calloc(problem->num_trainset_types, sizeof(int));
     recalculate_objective(sol, problem);
+    return EXIT_SUCCESS;
 }
 
 void copy_solution(Problem *problem, Solution *orig_sol, Solution *dest_sol) {

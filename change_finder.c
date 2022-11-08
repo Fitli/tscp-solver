@@ -324,7 +324,7 @@ void fastest_trip_from_node_to_stations(Solution *sol, const Problem *problem, c
                     for(; k < queue[i].path_len; k++) {
                         queue[j].path[k] = queue[i].path[k];
                     }
-                    Node *node = queue[i].final_node;
+                    const Node *node = queue[i].final_node;
                     while(node->out_subcon == NULL || node->out_subcon->id != final_edge_id) {
                         queue[j].path[k] = node->out_waiting;
                         k++;
@@ -381,7 +381,7 @@ void latest_trip_from_stations_to_node(Solution *sol, const Problem *problem, co
                     for(; k <= queue[i].path_len; k++) {
                         queue[j].path[queue[j].path_len - k] = queue[i].path[queue[i].path_len - k];
                     }
-                    Node *node = queue[i].final_node;
+                    const Node *node = queue[i].final_node;
                     while(node->in_subcon->id != final_edge_id) {
                         queue[j].path[queue[j].path_len - k] = node->in_waiting;
                         k++;
@@ -399,7 +399,7 @@ void latest_trip_from_stations_to_node(Solution *sol, const Problem *problem, co
 }
 
 //Find a sequence of edges that starts and ends in the same station and contains `edge`.
-bool find_trip_containing_edge(Solution *sol, const Problem *problem, Edge *edge, EdgeCondition *move_condition,
+bool find_trip_containing_edge(Solution *sol, const Problem *problem, const Edge *edge, EdgeCondition *move_condition,
                                EdgeCondition *wait_condition, Edge ***edges, int *num_edges) {
     if(edge->start_node == NULL || edge->end_node == NULL) { // workaround for unused edges
         return false;

@@ -602,19 +602,6 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
             break;
         case 18:
             break;
-        /*
-        case 15:
-            break;
-        case 16:
-            break;
-        case 17:
-            break;
-        case 18:
-            break;
-        case 19:
-            break;
-        default:
-            break;*/
     }
     if(operation_data) {
         fprintf(operation_data, "%s,", operation_name);
