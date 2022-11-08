@@ -21,7 +21,7 @@ int test_graph_consistency(Problem *problem, Solution *solution){
 
             if(incoming != outcoming) {
                 fprintf(stderr, "CONSISTENCY TEST: unconsistent solution around node %d\n", i_node);
-                return 0;
+                //return 0;
             }
         }
     }

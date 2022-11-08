@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include "datatypes.h"
-#include "parse_config.h"
+#include "parse_input.h"
 #include "solution_modifier.h"
 #include "heuristics.h"
 #include "change_finder.h"
@@ -19,13 +19,13 @@
 #include "min_flow.h"
 
 #define TO_DOT 1
-#define SEED 4
-//#define DATASET "../../small_data_2_ts.cfg"
-#define DATASET "../../big_data_2_ts.cfg"
+#define SEED 2
+#define DATASET "../../small_data_2_ts.cfg"
+//#define DATASET "../../big_data_2_ts.cfg"
 
 void read_solution_main() {
     Problem problem;
-    parse(DATASET, &problem);
+    parse_problem(DATASET, &problem);
 
     Solution sol = read_sol_from_csv(&problem, "../../sol_cplex_big.csv");
 
@@ -44,7 +44,7 @@ void local_search_main() {
 
 
     Problem problem;
-    parse(DATASET, &problem);
+    parse_problem(DATASET, &problem);
 
     clock_t inittime = clock();
 
@@ -75,7 +75,7 @@ void constructive_main() {
     srand(SEED);
 
     Problem problem;
-    parse(DATASET, &problem);
+    parse_problem(DATASET, &problem);
 
     clock_t inittime = clock();
 
@@ -99,7 +99,7 @@ void annealing_main() {
 
 
     Problem problem;
-    parse(DATASET, &problem);
+    parse_problem(DATASET, &problem);
 
     FILE *csv = fopen("annealing_big2.csv", "w");
     fprintf(csv, "oper,accepted,obj,temp,time,");
@@ -119,11 +119,11 @@ void annealing_main() {
     simulated_annealing(&problem, &sol, 1000000000, 1000, 1000000000, csv, inittime);
     long long int old_obj = sol.objective;
     int big_iters = 0;
-    /*do {
+    do {
         old_obj = sol.objective;
         simulated_annealing(&problem, &sol, 100000000, 100, 1000000000, csv, inittime);
         big_iters++;
-    } while(sol.objective < old_obj);*/
+    } while(sol.objective < old_obj);
 
     printf("iters: %d\n", big_iters);
 
@@ -154,7 +154,7 @@ void mixed_main() {
 
 
     Problem problem;
-    parse(DATASET, &problem);
+    parse_problem(DATASET, &problem);
 
     clock_t inittime = clock();
 
@@ -194,7 +194,7 @@ int min_flow_main() {
     srand(SEED);
 
     Problem problem;
-    parse(DATASET, &problem);
+    parse_problem(DATASET, &problem);
 
     Solution sol = min_flow(&problem, &problem.trainset_types[1]);
 
@@ -209,6 +209,6 @@ int min_flow_main() {
 }
 
 int main() {
-    read_solution_main();
+    annealing_main();
     return 0;
 }

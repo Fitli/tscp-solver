@@ -2,7 +2,7 @@
 // Created by fitli on 10.03.22.
 //
 
-#include "parse_config.h"
+#include "parse_input.h"
 #include "objective.h"
 #include <libconfig.h>
 #include <stdlib.h>
@@ -352,6 +352,9 @@ void set_source_edge(Problem *problem, int st_idx, int edge_idx) {
     problem->stations[st_idx].source_node = &problem->nodes[problem->num_inner_nodes + st_idx * 2];
     problem->edges[edge_idx-1].type = SOURCE_EDGE;
     problem->stations[st_idx].source_node->out_waiting = &(problem->edges[edge_idx-1]);
+    problem->stations[st_idx].source_node->out_subcon = NULL;
+    problem->stations[st_idx].source_node->in_waiting = NULL;
+    problem->stations[st_idx].source_node->in_subcon = NULL;
     problem->edges[edge_idx-1].start_node = problem->stations[st_idx].source_node;
 }
 
@@ -359,6 +362,9 @@ void set_sink_edge(Problem *problem, int st_idx, int edge_idx) {
     problem->stations[st_idx].sink_node = &problem->nodes[problem->num_inner_nodes + st_idx * 2 + 1];
     problem->edges[edge_idx-1].type = SINK_EDGE;
     problem->stations[st_idx].sink_node->in_waiting = &(problem->edges[edge_idx-1]);
+    problem->stations[st_idx].sink_node->in_subcon = NULL;
+    problem->stations[st_idx].sink_node->out_waiting = NULL;
+    problem->stations[st_idx].sink_node->out_subcon = NULL;
     problem->edges[edge_idx-1].end_node = problem->stations[st_idx].sink_node;
 }
 
@@ -371,7 +377,7 @@ int add_source_sink_edges(config_t *cfg, Problem *problem) {
 }
 
 
-int parse(const char* file, Problem *problem) {
+int parse_problem(const char* file, Problem *problem) {
     config_t cfg;
 
     config_init(&cfg);

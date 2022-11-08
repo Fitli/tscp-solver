@@ -7,6 +7,9 @@
 #include "objective.h"
 
 void destroy_problem(Problem *problem) {
+    for (int i = 0; i < problem->num_stations; ++i) {
+        free(problem->stations[i].node_ids);
+    }
     free(problem->stations);
     free(problem->edges);
     free(problem->nodes);

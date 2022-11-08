@@ -22,7 +22,6 @@ enum edge_type {
 };
 
 struct Station {
-    char name[256];
     int id;
     Node *source_node;
     Node *sink_node;
@@ -54,16 +53,6 @@ struct Edge {
     EdgeType type;
 };
 
-struct Connection {
-    Station* start_station;
-    Station* end_station;
-
-    time_t start_time;
-    time_t end_time;
-
-    struct Edge** subconections;
-};
-
 struct Node {
     int id;
 
@@ -77,26 +66,23 @@ struct Node {
 };
 
 struct Problem {
-    time_t cycle_length;
-    int num_stations; //number of stations - without source and sink
-    int num_edges;
-    int num_nodes;
-    int num_inner_nodes;
-    int num_conections;
-    int num_trainset_types;
+    int num_stations; //number of stations
+    int num_edges; // number of edges
+    int num_inner_nodes; // number of edges
+    int num_nodes; // number of nodes: num_inner_nodes + 2*num_stations
+    int num_trainset_types; // number of available trainset types
 
-    int max_trainset_types;
-    int max_len;
-    int max_cap;
+    int max_trainset_types; //maximum number of different trainset types used in solution
+    int max_len; // maximum number of trainset in one train
+    int max_cap; // maximum capacity of a train
 
-    int time_horizon;
-    double mod_cost;
+    int time_horizon; // Time horizon used for calculating operational cost and abroad gain
+    double mod_cost; // Modernization coefficient used for calculating investment cost
 
-    Trainset *trainset_types;
-    Node *nodes;
-    Station* stations;
+    Trainset *trainset_types; //array of all avalable trainset types
+    Node *nodes; // array of all nodes
+    Station* stations; // array of all stations
     Edge* edges; //array of all subconections
-    Connection* connections; // array of all connections
 };
 typedef struct Problem Problem;
 

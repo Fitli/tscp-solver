@@ -7,8 +7,8 @@
 #include "datatypes.h"
 
 //TODO zadefinovat na lepším místě
-#define CAPACITY_PENALTY 1000000000000
-#define MAX_LEN_PENALTY 1000000000000000
+#define CAPACITY_PENALTY (long long) 1e12
+#define MAX_LEN_PENALTY (long long) 1e15
 
 void get_num_ts(Solution *sol, Problem *problem) {
     for (int ts = 0; ts < problem->num_trainset_types; ++ts) {
