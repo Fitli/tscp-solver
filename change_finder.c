@@ -104,11 +104,7 @@ int find_trip_end_to_end(Solution *sol, const Problem *problem, const Station *s
     int res = find_trip_between_nodes(sol, problem, node_front, node_back, num_conds, front_conditions, back_conditions,
                                       wait_condition, edges, num_edges);
 
-    // no train found, return
-    if(res == 0) {
-        return 0;
-    }
-
+    return res;
 }
 
 //greedy finding of a journey between two nodes of the same station
@@ -549,6 +545,19 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
     return 1;
 }
 
+bool go_to_subcon_first(Problem *problem, Solution *sol, Edge *subcon,
+                         int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities) {
+    int prob = 50;
+    if(num_prob_conditions && prob_conditions && probabilities) {
+        for (int i = 0; i <num_prob_conditions; ++i) {
+            if(eval_edge_condition(prob_conditions[i], subcon, &sol->edge_solution[subcon->id])) {
+                prob = probabilities[i];
+            }
+        }
+    }
+    return rand() % 100 < prob;
+}
+
 /**
  * Finds a sequence of edges connecting `start_node` and `end_node`. Uses DFS with random order of searching branches
  *
@@ -558,7 +567,7 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
  * @param end_node
  * @param wait_condition must hold for all WAITING edges in the trip
  * @param move_condition must hold for all SUBCONNECTION edges in the trip
- * @param allow_jumps if 1, it is alloved to jump between evening and morning in the same station
+ * @param allow_jumps if 1, it is allowed to jump between evening and morning in the same station
  * @param[out] edges dynamically alocated array with edges in the trip.
  * @param[out] num_edges number of edges in `edges`
  * @return if the resulting trip contains at leadst 1 SOURCE edge, then the number of SOURCE edges in the result.
