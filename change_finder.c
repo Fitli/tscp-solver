@@ -545,8 +545,11 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
     return 1;
 }
 
-bool go_to_subcon_first(Problem *problem, Solution *sol, Edge *subcon,
+bool go_to_subcon_first(Solution *sol, Edge *subcon,
                          int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities) {
+    if(subcon == NULL) {
+        return false;
+    }
     int prob = 50;
     if(num_prob_conditions && prob_conditions && probabilities) {
         for (int i = 0; i <num_prob_conditions; ++i) {
@@ -567,14 +570,18 @@ bool go_to_subcon_first(Problem *problem, Solution *sol, Edge *subcon,
  * @param end_node
  * @param wait_condition must hold for all WAITING edges in the trip
  * @param move_condition must hold for all SUBCONNECTION edges in the trip
- * @param allow_jumps if 1, it is allowed to jump between evening and morning in the same station
+ * @param allow_overnight if 1, it is allowed to jump between evening and morning in the same station
+ * @param num_prob_conditions TODO
+ * @param prob_conditions TODO
+ * @param probabilities TODO
  * @param[out] edges dynamically alocated array with edges in the trip.
  * @param[out] num_edges number of edges in `edges`
  * @return if the resulting trip contains at leadst 1 SOURCE edge, then the number of SOURCE edges in the result.
  *         Otherwise 1 if a trip was found and 0 if not.
  */
 int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
-                             EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_jumps,
+                             EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
+                             int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities,
                              Edge ***edges, int *num_edges) {
     bool used_wait[problem->num_nodes];
     bool used_subcon[problem->num_nodes];
@@ -604,7 +611,8 @@ int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node,
             continue;
         }
 
-        if(used_wait[node->id] || (!used_subcon[node->id] && rand()%2 == 0)) {
+        if(used_wait[node->id] ||
+        (!used_subcon[node->id] && go_to_subcon_first(sol, node->out_subcon, num_prob_conditions, prob_conditions, probabilities))) {
             used_subcon[node->id] = true;
             if(node->out_subcon && eval_edge_condition(move_condition, node->out_subcon, &sol->edge_solution[node->out_subcon->id])) {
                 buffer[buffer_size] = node->out_subcon;
@@ -617,7 +625,7 @@ int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node,
                 buffer[buffer_size] = node->out_waiting;
                 buffer_size++;
                 node = node->out_waiting->end_node;
-            } else if (node->out_waiting == NULL && allow_jumps == 1) { // jump into the next day
+            } else if (node->out_waiting == NULL && allow_overnight == 1) { // jump into the next day
                 node = node->station->source_node;
             }
         }

@@ -132,8 +132,12 @@ int edge_is_empty(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     return sol->capacity == 0;
 }
 
-int edge_needs_more_ts(const Edge *edge, const EdgeSolution *sol, void *a_data) {
-    return sol->capacity < edge->minimal_capacity;
+int edge_needs_more_capacity(const Edge *edge, const EdgeSolution *sol, void *a_data) {
+    int capacity_change = 0;
+    if (a_data) {
+        capacity_change = *(int *) a_data;
+    }
+    return sol->capacity + capacity_change < edge->minimal_capacity;
 }
 
 int edge_enough_capacity(const Edge *edge, const EdgeSolution *sol, void *a_data) {
@@ -168,6 +172,7 @@ int edge_start_in_station(const Edge *edge, const EdgeSolution *sol, void *a_dat
     return edge->start_node->station->id == station;
 }
 
+// Overall number of trainsets is bigger than a_data
 int edge_has_more_ts_than(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     int num = *(int *) a_data;
     int n_ts = 0;
@@ -175,4 +180,11 @@ int edge_has_more_ts_than(const Edge *edge, const EdgeSolution *sol, void *a_dat
         n_ts += sol->num_trainsets[i];
     }
     return n_ts > num;
+}
+
+// a_data: array of integers - modification of number of seats, capacity treshold
+int edge_has_more_seats_than(const Edge *edge, const EdgeSolution *sol, void *a_data) {
+    int cap_modif = *(int *) a_data;
+    int tresholed = *((int *) a_data);
+    return sol->capacity + cap_modif > tresholed;
 }

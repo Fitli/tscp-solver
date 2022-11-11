@@ -24,9 +24,9 @@ void oper_remove_train_pair(Solution *sol, Problem *problem, int station1_id, in
 void oper_remove_train_with_edge(Solution *sol, Problem *problem, int edge_id, int ts_id);
 int oper_remove_waiting_train(Solution *sol, Problem *problem, int station_id, int ts_id);
 int oper_remove_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id, int ts_id);
-void oper_reschedule_w_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
-void oper_reschedule_n_l(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
-void oper_reschedule_n_w(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+void oper_reschedule_wait_go(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+void oper_reschedule_go_go(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+void oper_reschedule_go_wait(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 void oper_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id);
 void oper_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id);
 void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data);

@@ -23,7 +23,7 @@ EdgeCondition *create_edge_condition(int (*predicate)(const Edge *, const EdgeSo
 void free_edge_conditions(EdgeCondition *cond);
 
 int edge_is_empty(const Edge *edge, const EdgeSolution *sol, void *a_data);
-int edge_needs_more_ts(const Edge *edge, const EdgeSolution *sol, void *a_data);
+int edge_needs_more_capacity(const Edge *edge, const EdgeSolution *sol, void *a_data);
 int edge_enough_capacity(const Edge *edge, const EdgeSolution *sol, void *a_data);
 int edge_any(const Edge *edge, const EdgeSolution *sol, void *a_data);
 int edge_none(const Edge *edge, const EdgeSolution *sol, void *a_data);
@@ -34,5 +34,6 @@ int edge_has_trainset(const Edge *edge, const EdgeSolution *sol, void *a_data);
 int edge_ends_in_station(const Edge *edge, const EdgeSolution *sol, void *a_data);
 int edge_start_in_station(const Edge *edge, const EdgeSolution *sol, void *a_data);
 int edge_has_more_ts_than(const Edge *edge, const EdgeSolution *sol, void *a_data);
+int edge_has_more_seats_than(const Edge *edge, const EdgeSolution *sol, void *a_data);
 
 #endif //TSCP_SOLVER_HEURISTICS_H

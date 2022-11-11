@@ -42,7 +42,8 @@ int find_train_containing_edge(Solution *sol, const Problem *problem, const Edge
                                 EdgeCondition **move_conditions, EdgeCondition *wait_condition,Edge ***edges, int *num_edges);
 
 int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
-                             EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_jumps,
+                             EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
+                             int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities,
                              Edge ***edges, int *num_edges);
 
 #endif //TSCP_SOLVER_CHANGE_FINDER_H
