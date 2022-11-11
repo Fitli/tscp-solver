@@ -110,6 +110,133 @@ void find_feasible(Problem *problem, int *low_bounds, int *feasible) {
     }
 }
 
+void augment_ff2(Problem *problem, int *from_source, int *to_sink, const int *capacities, int *sol, int start_node, int end_node, Edge **edges, const int *dirs, int num_edges) {
+    int to_augment = from_source[start_node];
+    if (to_sink[end_node] < to_augment) {
+        to_augment = to_sink[end_node];
+    }
+    for (int i = 0; i < num_edges; ++i) {
+        int edge_id = edges[i]->id;
+        if(dirs[i] == 1 && capacities[edge_id] - sol[edge_id] < to_augment) {
+            to_augment = capacities[edge_id] - sol[edge_id];
+        }
+        if(dirs[i] == -1 && sol[edge_id] < to_augment) {
+            to_augment = sol[edge_id];
+        }
+    }
+
+    from_source[start_node] -= to_augment;
+    to_sink[end_node] -= to_augment;
+    for (int i = 0; i < num_edges; ++i) {
+        int edge_id = edges[i]->id;
+        sol[edge_id] += dirs[i] * to_augment;
+    }
+}
+
+void find_path_ff2(Problem *problem, int n, int *from_source, int *to_sink, int *capacities, int *sol) {
+    Node *node = &problem->nodes[n];
+    Edge *edges[problem->num_edges];
+    int dirs[problem->num_edges];
+    int buff_size = 0;
+
+    bool used_edges[problem->num_edges];
+    for(int i = 0; i < problem->num_edges; i++) {
+        used_edges[i] = false;
+    }
+    int visited[problem->num_nodes];
+    for(int i = 0; i < problem->num_nodes; i++) {
+        visited[i] = 0;
+    }
+
+    while(to_sink[node->id] == 0) {
+        if(!node->out_waiting) {
+            node = node->station->source_node; // jump from sink to source
+        }
+        if(visited[node->id] == 4) {
+            buff_size--;
+            if (dirs[buff_size] == 1)
+                node = edges[buff_size]->start_node;
+            else
+                node = edges[buff_size]->end_node;
+            continue;
+        }
+        Edge *next_edge = NULL;
+        int next_dir = 0;
+        switch (visited[node->id]) {
+            case 0:
+                next_edge = node->out_waiting;
+                next_dir = 1;
+                break;
+            case 1:
+                next_edge = node->out_subcon;
+                next_dir = 1;
+                break;
+            case 2:
+                next_edge = node->in_waiting;
+                next_dir = -1;
+                break;
+            case 3:
+                next_edge = node->in_subcon;
+                next_dir = -1;
+                break;
+        }
+        visited[node->id]++;
+        if (next_edge && !used_edges[next_edge->id]) {
+            if(next_dir == 1 && capacities[next_edge->id] - sol[next_edge->id] > 0) {
+                edges[buff_size] = next_edge;
+                dirs[buff_size] = next_dir;
+                buff_size++;
+                node = next_edge->end_node;
+                used_edges[next_edge->id] = true;
+            }
+            if(next_dir == -1 && sol[next_edge->id] > 0) {
+                edges[buff_size] = next_edge;
+                dirs[buff_size] = next_dir;
+                buff_size++;
+                node = next_edge->start_node;
+                used_edges[next_edge->id] = true;
+            }
+        }
+    }
+    augment_ff2(problem, from_source, to_sink, capacities, sol, n, node->id, edges, dirs, buff_size);
+}
+
+void find_feasible2(Problem *problem, const int *low_bounds, const int *up_bounds, int *feasible) {
+    int from_source[problem->num_nodes];
+    int to_sink[problem->num_nodes];
+    for (int i = 0; i < problem->num_nodes; ++i) {
+        Node *node = &problem->nodes[i];
+        from_source[i] = 0;
+        if(node->in_subcon) {
+            from_source[i] += low_bounds[node->in_subcon->id];
+        }
+        if(node->in_waiting) {
+            from_source[i] += low_bounds[node->in_waiting->id];
+        }
+        to_sink[i] = 0;
+        if(node->out_subcon) {
+            to_sink[i] += low_bounds[node->out_subcon->id];
+        }
+        if(node->out_waiting) {
+            to_sink[i] += low_bounds[node->out_waiting->id];
+        }
+    }
+
+    int capacities[problem->num_edges];
+    for (int i = 0; i < problem->num_edges; ++i) {
+        capacities[i] = up_bounds[i] - low_bounds[i];
+    }
+
+    for (int i = 0; i < problem->num_nodes; ++i) {
+        while (from_source[i] > 0)
+            find_path_ff2(problem, i, from_source, to_sink, capacities, feasible);
+    }
+
+    for (int i = 0; i < problem->num_edges; ++i) {
+        feasible[i] += low_bounds[i];
+    }
+}
+
 int available_flow(int bound, int flow, int dir) {
     if(dir == 1) {
         return bound - flow;
@@ -239,16 +366,27 @@ void find_max_flow(Problem *problem, int *upper_bounds, int *max_flow) {
 }
 
 Solution min_flow(Problem *problem, Trainset *ts) {
+    int up_bound = problem->max_cap / ts->seats;
+    if(up_bound > 2) {
+        up_bound = 2;
+    }
+
     int low_bounds[problem->num_edges];
+    int up_bounds[problem->num_edges];
     int feasible[problem->num_edges];
     for (int i = 0; i < problem->num_edges; ++i) {
         low_bounds[i] = problem->edges[i].minimal_capacity / ts->seats;
         if(problem->edges[i].minimal_capacity % ts->seats != 0) {
             low_bounds[i]++;
         }
+        if(problem->edges[i].type == SUBCONNECTION)
+            up_bounds[i] = up_bound;
+        else
+            up_bounds[i] = ts->available;
         feasible[i] = 0;
     }
-    find_feasible(problem, low_bounds, feasible);
+    //find_feasible(problem, low_bounds, feasible);
+    find_feasible2(problem, low_bounds, up_bounds, feasible);
 
     int upper_bounds[problem->num_edges];
     int max_flow[problem->num_edges];

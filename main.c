@@ -13,9 +13,9 @@
 #include "min_flow.h"
 
 #define TO_DOT 1
-#define SEED 2
-#define DATASET "../../small_data_2_ts.cfg"
-//#define DATASET "../../big_data_2_ts.cfg"
+#define SEED 1
+//#define DATASET "../../small_data_2_ts.cfg"
+#define DATASET "../../big_data_2_ts.cfg"
 
 void read_solution_main() {
     Problem problem;
@@ -103,17 +103,17 @@ void annealing_main() {
     clock_t inittime = clock();
 
     Solution sol;
-    //empty_solution(&problem, &sol);
+    empty_solution(&problem, &sol);
 
     sol = min_flow(&problem, &problem.trainset_types[1]);
 
-    simulated_annealing(&problem, &sol, 100000000000000, 100000, 10000, csv, inittime);
+    //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
     simulated_annealing(&problem, &sol, 1000000000, 1000, 1000000000, csv, inittime);
     long long int old_obj = sol.objective;
     int big_iters = 0;
     do {
         old_obj = sol.objective;
-        simulated_annealing(&problem, &sol, 100000000, 100, 1000000000, csv, inittime);
+        simulated_annealing(&problem, &sol, 100000000, 1000, 1000000000, csv, inittime);
         big_iters++;
     } while(sol.objective < old_obj);
 

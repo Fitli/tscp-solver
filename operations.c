@@ -443,7 +443,7 @@ int remove_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
 
     EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
 
-    int num_probs = 2;
+    int num_probs = 3;
     int probs[num_probs];
     EdgeCondition *prob_conds[num_probs];
 
@@ -452,8 +452,8 @@ int remove_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
     int max_cap_adata[2] = {0, problem->max_cap};
     prob_conds[1] = create_edge_condition(&edge_has_more_ts_than, max_cap_adata, NULL);
     probs[1] = 70;
-    prob_conds[3] = create_edge_condition(&edge_has_more_ts_than, &problem->num_trainset_types, NULL);
-    probs[3] = 70;
+    prob_conds[2] = create_edge_condition(&edge_has_more_ts_than, &problem->num_trainset_types, NULL);
+    probs[2] = 70;
 
     result = find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
                                       has_ts_cond, has_ts_cond, allow_jumps, 0, NULL, NULL, &edges, &num_edges);
@@ -570,6 +570,41 @@ void oper_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_i
                          wait_e_cond, &selected_edge_id);
     if(selected_edge_id >= 0)
         move_to_other_subcon(sol, problem, &problem->trainset_types[ts_id], &problem->edges[edge_id], &problem->edges[selected_edge_id]);
+}
+
+void oper_reschedule_dfs(Solution *sol, Problem *problem, int start_node_id, int trip_len, int ts_id) {
+    Edge **edges = NULL;
+    int num_edges = 0;
+
+    int a_data[2] = {ts_id, 1};
+    int capacity_diff = -1 * problem->trainset_types[ts_id].seats;
+
+    EdgeCondition *has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
+
+    int num_probs = 3;
+    int probs[num_probs];
+    EdgeCondition *prob_conds[num_probs];
+
+    prob_conds[0] = create_edge_condition(&edge_needs_more_capacity, &capacity_diff, NULL);
+    probs[0] = 30;
+    int max_cap_adata[2] = {0, problem->max_cap};
+    prob_conds[1] = create_edge_condition(&edge_has_more_ts_than, max_cap_adata, NULL);
+    probs[1] = 70;
+    prob_conds[2] = create_edge_condition(&edge_has_more_ts_than, &problem->num_trainset_types, NULL);
+    probs[2] = 70;
+
+    Node *start_node = &problem->nodes[start_node_id];
+
+    if (!find_random_trip_from(problem, sol, start_node, trip_len, has_ts_cond, has_ts_cond, 0, num_probs, prob_conds, probs, &edges, &num_edges)) {
+        return;
+    }
+
+    remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
+
+    Node *end_node = edges[num_edges - 1]->end_node;
+
+    insert_trip_dfs(sol, problem, start_node_id, end_node->id, ts_id);
+
 }
 
 void do_random_operation_(Problem *problem, Solution *sol, FILE *operation_data) {
@@ -730,8 +765,8 @@ void do_random_operation__(Problem *problem, Solution *sol, FILE *operation_data
     //printf("%s\n", operation_name);
 }
 
-void do_random_operation___(Problem *problem, Solution *sol, FILE *operation_data) {
-    int r = rand() % 9;
+void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) {
+    int r = rand() % 10;
     int rand_st = rand() % problem->num_stations;
     int rand_st2 = rand() % problem->num_stations;
     int rand_edge = rand() % problem->num_edges;
@@ -779,6 +814,9 @@ void do_random_operation___(Problem *problem, Solution *sol, FILE *operation_dat
             operation_name = "reschedule_n_w";
             oper_reschedule_go_wait(sol, problem, rand_start_node, rand_end_node, rand_ts);
             break;
+        case 9:
+            operation_name = "reschedule dfs";
+            oper_reschedule_dfs(sol, problem, rand_start_node, 20, rand_ts);
     }
     if(operation_data) {
         fprintf(operation_data, "%s,", operation_name);
@@ -786,8 +824,8 @@ void do_random_operation___(Problem *problem, Solution *sol, FILE *operation_dat
     //printf("%s\n", operation_name);
 }
 
-void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) {
-    int r = rand() % 9;
+void do_random_operation____(Problem *problem, Solution *sol, FILE *operation_data) {
+    int r = rand() % 10;
     int rand_st = rand() % problem->num_stations;
     int rand_st2 = rand() % problem->num_stations;
     int rand_edge = rand() % problem->num_edges;
@@ -823,17 +861,9 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
             operation_name = "change dfs 1:2";
             oper_change_train_capacity_dfs(sol, problem, rand_st, rand_ts, rand_ts2, 1, 2);
             break;
-        case 6:
-            operation_name = "reschedule_w_l";
-            oper_reschedule_wait_go(sol, problem, rand_start_node, rand_end_node, rand_ts);
-            break;
-        case 7:
-            operation_name = "reschedule_n_l";
-            oper_reschedule_go_go(sol, problem, rand_start_node, rand_end_node, rand_ts);
-            break;
-        case 8:
-            operation_name = "reschedule_n_w";
-            oper_reschedule_go_wait(sol, problem, rand_start_node, rand_end_node, rand_ts);
+        default:
+            operation_name = "reschedule_dfs";
+            oper_reschedule_dfs(sol, problem, rand_start_node, 20, rand_ts);
             break;
     }
     if(operation_data) {

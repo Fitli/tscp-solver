@@ -46,4 +46,9 @@ int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node,
                              int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities,
                              Edge ***edges, int *num_edges);
 
+int find_random_trip_from(Problem * problem, Solution *sol, Node *start_node, int trip_len,
+                          EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
+                          int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities,
+                          Edge ***edges, int *num_edges);
+
 #endif //TSCP_SOLVER_CHANGE_FINDER_H

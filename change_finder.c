@@ -647,3 +647,54 @@ int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node,
     }
     return result;
 }
+
+
+int find_random_trip_from(Problem * problem, Solution *sol, Node *start_node, int trip_len,
+                             EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
+                             int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities,
+                             Edge ***edges, int *num_edges) {
+    Edge *buffer[problem->num_nodes];
+    Node *node = start_node;
+    int buffer_size = 0;
+
+    while (buffer_size < trip_len)  {
+        if(node->out_subcon &&
+                eval_edge_condition(move_condition, node->out_subcon, &sol->edge_solution[node->out_subcon->id]) &&
+                (!eval_edge_condition(wait_condition, node->out_waiting, &sol->edge_solution[node->out_waiting->id]) ||
+                 go_to_subcon_first(sol, node->out_subcon, num_prob_conditions, prob_conditions, probabilities))) {
+            buffer[buffer_size] = node->out_subcon;
+            buffer_size++;
+            node = node->out_subcon->end_node;
+        } else if(node->out_waiting && eval_edge_condition(wait_condition, node->out_waiting, &sol->edge_solution[node->out_waiting->id])) {
+            buffer[buffer_size] = node->out_waiting;
+            buffer_size++;
+            node = node->out_waiting->end_node;
+        } else if (node->out_waiting == NULL) { // sink node
+            if (allow_overnight == 1) {
+                node = node->station->source_node;
+            }
+            else {
+                break;
+            }
+        }
+        else {
+            break;
+        }
+    }
+
+    int result = 0;
+    if(buffer_size > 0) {
+        *edges = malloc(buffer_size * sizeof(Edge*));
+        *num_edges = buffer_size;
+        for (int i = 0; i < buffer_size; ++i) {
+            (*edges)[i] = buffer[i];
+            if(buffer[i]->type == SOURCE_EDGE) {
+                result++;
+            }
+        }
+        if(result == 0) {
+            result = 1; // case when the trip contains no source edges, but some trip was found.
+        }
+    }
+    return result;
+}
