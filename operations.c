@@ -16,7 +16,7 @@ int change_trip_capacity(Solution *sol, Problem *problem, int start_node_id, int
 int remove_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id, int allow_jumps);
 int change_trip_capacity_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int old_ts_id,
                              int new_ts_id, int old_ts_amount, int new_ts_amount, int allow_jumps);
-int insert_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
+int insert_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int allow_overnight, int ts_id);
 
 void oper_add_train_to_empty(Solution *sol, Problem *problem, int station_id) {
     Edge **edges;
@@ -58,7 +58,7 @@ void oper_add_train(Solution *sol, Problem *problem, int station_id, int ts_id) 
 void oper_add_train_dfs(Solution *sol, Problem *problem, int station_id, int ts_id) {
     Station *station = &problem->stations[station_id];
 
-    insert_trip_dfs(sol, problem, station->source_node->id, station->sink_node->id, ts_id);
+    insert_trip_dfs(sol, problem, station->source_node->id, station->sink_node->id, 1, ts_id);
 }
 
 void oper_add_train_pair_later(Solution *sol, Problem *problem, int station1_id, int station2_id, int ts_id) {
@@ -138,12 +138,12 @@ void oper_add_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id, 
         return;
     }
 
-    if(insert_trip_dfs(sol, problem, edge->end_node->id, edge->start_node->id, ts_id)) {
+    if(insert_trip_dfs(sol, problem, edge->end_node->id, edge->start_node->id, 1, ts_id)) {
         add_trainset_to_edge(sol, problem, &problem->trainset_types[ts_id], edge);
     }
 }
 
-int insert_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
+int insert_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int allow_overnight, int ts_id) {
     Trainset *ts = &problem->trainset_types[ts_id];
 
     Edge **edges;
@@ -164,7 +164,7 @@ int insert_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
     probs[2] = 30;
 
     if(find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
-                                NULL, NULL, 1, num_probs, prob_conds, probs, &edges, &num_edges)) {
+                                NULL, NULL, allow_overnight, num_probs, prob_conds, probs, &edges, &num_edges)) {
         add_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
 
         free(edges);
@@ -603,7 +603,7 @@ void oper_reschedule_dfs(Solution *sol, Problem *problem, int start_node_id, int
 
     Node *end_node = edges[num_edges - 1]->end_node;
 
-    insert_trip_dfs(sol, problem, start_node_id, end_node->id, ts_id);
+    insert_trip_dfs(sol, problem, start_node_id, end_node->id, 0, ts_id);
 
 }
 
@@ -765,7 +765,7 @@ void do_random_operation__(Problem *problem, Solution *sol, FILE *operation_data
     //printf("%s\n", operation_name);
 }
 
-void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) {
+void do_random_operation___(Problem *problem, Solution *sol, FILE *operation_data) {
     int r = rand() % 10;
     int rand_st = rand() % problem->num_stations;
     int rand_st2 = rand() % problem->num_stations;
@@ -824,7 +824,7 @@ void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) 
     //printf("%s\n", operation_name);
 }
 
-void do_random_operation____(Problem *problem, Solution *sol, FILE *operation_data) {
+void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data) {
     int r = rand() % 10;
     int rand_st = rand() % problem->num_stations;
     int rand_st2 = rand() % problem->num_stations;
@@ -847,24 +847,44 @@ void do_random_operation____(Problem *problem, Solution *sol, FILE *operation_da
             break;
         case 2:
             operation_name = "remove dfs edge";
-            oper_remove_train_with_edge_dfs(sol, problem, rand_edge, rand_ts);
+            int ts = 0;
+            if(sol->edge_solution[rand_edge].num_trainsets[0] == 0 || rand() % 2 == 0)
+                ts = 1;
+            oper_remove_train_with_edge_dfs(sol, problem, rand_edge, ts);
             break;
         case 3:
             operation_name = "change dfs";
-            oper_change_train_capacity_dfs(sol, problem, rand_st, rand_ts, rand_ts2, 1, 1);
+            int ts1 = 0;
+            int ts2 = 1;
+            if(sol->edge_solution[rand_edge].num_trainsets[0] == 0 || rand() % 2 == 0) {
+                ts1 = 1;
+                ts2 = 0;
+            }
+            oper_change_train_capacity_dfs(sol, problem, rand_st, ts1, ts2, 1, 1);
             break;
         case 4:
             operation_name = "change dfs 2:1";
-            oper_change_train_capacity_dfs(sol, problem, rand_st, rand_ts, rand_ts2, 2, 1);
+            ts1 = 0;
+            if(sol->edge_solution[rand_edge].num_trainsets[0] < 2 || rand() % 2 == 0) {
+                ts1 = 1;
+            }
+            oper_change_train_capacity_dfs(sol, problem, rand_st, ts1, rand_ts2, 2, 1);
             break;
         case 5:
             operation_name = "change dfs 1:2";
-            oper_change_train_capacity_dfs(sol, problem, rand_st, rand_ts, rand_ts2, 1, 2);
+            ts1 = 0;
+            if(sol->edge_solution[rand_edge].num_trainsets[0] == 0 || rand() % 2 == 0) {
+                ts1 = 1;
+            }
+            oper_change_train_capacity_dfs(sol, problem, rand_st, ts1, rand_ts2, 1, 2);
+            break;
+        case 6:
+            operation_name = "reschedule_n_l";
+            oper_reschedule_go_go(sol, problem, rand_start_node, rand_end_node, rand_ts);
             break;
         default:
-            operation_name = "reschedule_dfs";
-            oper_reschedule_dfs(sol, problem, rand_start_node, 20, rand_ts);
-            break;
+            operation_name = "reschedule dfs";
+            oper_reschedule_dfs(sol, problem, rand_start_node, 2 + rand() % 20, rand_ts);
     }
     if(operation_data) {
         fprintf(operation_data, "%s,", operation_name);

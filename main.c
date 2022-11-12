@@ -14,8 +14,8 @@
 
 #define TO_DOT 1
 #define SEED 1
-//#define DATASET "../../small_data_2_ts.cfg"
-#define DATASET "../../big_data_2_ts.cfg"
+#define DATASET "../../small_data_2_ts.cfg"
+//#define DATASET "../../big_data_2_ts.cfg"
 
 void read_solution_main() {
     Problem problem;
