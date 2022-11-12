@@ -235,7 +235,7 @@ bool find_augmenting_path(Problem *problem, int *upper_bounds, int *max_flow, in
     return false;
 }
 
-void augment_max_flow(int *upper_bounds, int *flows, int *path, int *dirs, int path_len) {
+void augment_max_flow(int *upper_bounds, int *flows, const int *path, int *dirs, int path_len) {
     int to_augment = available_flow(upper_bounds[path[0]], flows[path[0]], dirs[0]);
     for (int i = 1; i < path_len; ++i) {
         int av_fl_i = available_flow(upper_bounds[path[i]], flows[path[i]], dirs[i]);

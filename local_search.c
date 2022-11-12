@@ -63,7 +63,7 @@ void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborh
             }
 
             copy_solution(problem, sol, new_sols + local_counter);
-            do_random_operation(problem, new_sols + local_counter, csv_operations);
+            select_operation(problem, new_sols + local_counter, NULL);
 
             bool is_tabu = false;
             for (int i = 0; i < taboo_size; ++i) {

@@ -110,7 +110,7 @@ void annealing_main() {
 
     //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
     simulated_annealing(&problem, &sol, 1000000000, 1000, 1000000000, csv, inittime);
-    long long int old_obj = sol.objective;
+    long long int old_obj;
     int big_iters = 0;
     do {
         old_obj = sol.objective;

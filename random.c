@@ -17,6 +17,7 @@ int random_1_over_i(int number) {
         }
         random -= number/i;
     }
+    return 0;
 }
 
 int random_1_over_square(int number) {
@@ -43,4 +44,5 @@ int roulette_wheel(const int *weights, int num_elems) {
             return i;
         }
     }
+    return 0;
 }

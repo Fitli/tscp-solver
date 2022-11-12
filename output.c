@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include "output.h"
-#include "objective.h"
 #include "test.h"
 
 void print_objective(Solution *sol) {
