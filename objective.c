@@ -31,6 +31,13 @@ void recalculate_objective(Solution *sol, Problem *problem) {
 
         EdgeSolution *edge_sol = &sol->edge_solution[ed_id];
 
+        sol->cap_can_remove[ed_id] = edge_sol->capacity - edge->minimal_capacity;
+        sol->cap_can_add[ed_id] = problem->max_cap - edge_sol->capacity;
+        if(sol->cap_can_remove[ed_id] < 0)
+            sol->cap_can_remove[ed_id] = 0;
+        if(sol->cap_can_add[ed_id] < 0)
+            sol->cap_can_add[ed_id] = 0;
+
         for(int ts_id = 0; ts_id < problem->num_trainset_types; ts_id++) {
             int num_ts = edge_sol->num_trainsets[ts_id];
             struct Trainset *ts = &problem->trainset_types[ts_id];
@@ -116,6 +123,13 @@ void update_obj_add_ts_to_edge(Solution *sol, const Problem *problem, const Trai
     if(sum_ts == 1) {
         sol->objective -=  MAX_LEN_PENALTY;
     }
+
+    sol->cap_can_remove[edge->id] = sol->edge_solution[edge->id].capacity + ts->seats - edge->minimal_capacity;
+    sol->cap_can_add[edge->id] = problem->max_cap - sol->edge_solution[edge->id].capacity - ts->seats;
+    if(sol->cap_can_remove[edge->id] < 0)
+        sol->cap_can_remove[edge->id] = 0;
+    if(sol->cap_can_add[edge->id] < 0)
+        sol->cap_can_add[edge->id] = 0;
 }
 
 /*
@@ -162,4 +176,11 @@ void update_obj_remove_ts_from_edge(Solution *sol, const Problem *problem, const
     if(sum_ts == 1) {
         sol->objective +=  MAX_LEN_PENALTY;
     }
+
+    sol->cap_can_remove[edge->id] = sol->edge_solution[edge->id].capacity - ts->seats - edge->minimal_capacity;
+    sol->cap_can_add[edge->id] = problem->max_cap - sol->edge_solution[edge->id].capacity + ts->seats;
+    if(sol->cap_can_remove[edge->id] < 0)
+        sol->cap_can_remove[edge->id] = 0;
+    if(sol->cap_can_add[edge->id] < 0)
+        sol->cap_can_add[edge->id] = 0;
 }

@@ -9,6 +9,18 @@
 #include "simmulated_annealing.h"
 #include "operations.h"
 
+#define WEIGHT_DECREASE 0.9
+
+void update_weights(int *weights, int accepted_op) {
+    for (int i = 0; i < NUM_OPERATIONS; ++i) {
+        weights[i] = (int) (weights[i] * WEIGHT_DECREASE);
+        if(weights[i] < 100) {
+            weights[i] = 100;
+        }
+    }
+    weights[accepted_op] += 100;
+}
+
 double anneal_accept_prob(long long int old_obj, long long int new_obj, double temperature) {
     if(old_obj > new_obj) {
         printf("%f ", 1);
@@ -30,6 +42,11 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
     empty_solution(problem, &best);
     empty_solution(problem, &new);
 
+    int oper_weights[NUM_OPERATIONS];
+    for (int i = 0; i < NUM_OPERATIONS; ++i) {
+        oper_weights[i] = 100;
+    }
+
     double temp = init_temp;
     int iter = 0;
     int last_accept_iter = 0;
@@ -38,14 +55,13 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         printf("%d %lld %f %d %d\n", iter, sol->objective, temp, sol->num_trainstes[0], sol->num_trainstes[1]);
         fflush(stdout);
         copy_solution(problem, sol, &new);
-        if(iter%1000==0)
-            do_random_operation(problem, &new, csv);
-        else
-            do_random_operation(problem, &new, NULL);
+        int op;
+        op = select_operation(problem, &new, oper_weights);
         bool accepting = anneal_accept_prob(sol->objective, new.objective, temp) > (double) rand()/RAND_MAX;
         if(accepting){
             copy_solution(problem, &new, sol);
             last_accept_iter = iter;
+            update_weights(oper_weights, op);
         }
         if(new.objective < best.objective) {
             copy_solution(problem, &new, &best);

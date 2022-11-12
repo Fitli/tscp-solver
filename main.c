@@ -43,7 +43,8 @@ void local_search_main() {
     clock_t inittime = clock();
 
     Solution sol;
-    empty_solution(&problem, &sol);
+    //empty_solution(&problem, &sol);
+    sol = min_flow(&problem, &problem.trainset_types[1]);
 
 
     FILE *csv_objective = fopen("local_search_objective_big.csv", "w");

@@ -27,3 +27,20 @@ int random_1_over_square(int number) {
     }
     return 0;
 }
+
+int roulette_wheel(const int *weights, int num_elems) {
+    int sum = 0;
+    for (int i = 0; i < num_elems; ++i) {
+        sum += weights[i];
+    }
+    if(sum == 0) {
+        return 0;
+    }
+    int r = rand() % sum;
+    for (int i = 0; i < num_elems; ++i) {
+        r -= weights[i];
+        if(r < 0) {
+            return i;
+        }
+    }
+}

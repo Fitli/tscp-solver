@@ -8,6 +8,8 @@
 #ifndef TSCP_SOLVER_ACTIONS_H
 #define TSCP_SOLVER_ACTIONS_H
 
+#define NUM_OPERATIONS 8
+
 void oper_add_train_to_empty(Solution *sol, Problem *problem, int station_id);
 void oper_add_train(Solution *sol, Problem *problem, int station_id, int ts_id);
 void oper_add_train_pair_later(Solution *sol, Problem *problem, int station1_id, int station2_id, int ts_id);
@@ -30,6 +32,7 @@ void oper_reschedule_go_wait(Solution *sol, Problem *problem, int start_node_id,
 void oper_move_edge_back(Solution *sol, Problem *problem, int edge_id, int ts_id);
 void oper_move_edge_front(Solution *sol, Problem *problem, int edge_id, int ts_id);
 void do_random_operation(Problem *problem, Solution *sol, FILE *operation_data);
+int select_operation(Problem *problem, Solution *sol, int *weights);
 
 
 #endif //TSCP_SOLVER_ACTIONS_H

@@ -96,6 +96,8 @@ struct Solution {
     EdgeSolution *edge_solution;
     long long int objective;
     int *num_trainstes;
+    int *cap_can_add;
+    int *cap_can_remove;
 };
 typedef struct Solution Solution;
 
