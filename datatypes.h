@@ -62,7 +62,7 @@ struct Node {
     Edge *out_subcon;
 
     Station* station;
-    int time;
+    int time; // order of the node between all nodes of the station
 };
 
 struct Problem {
@@ -101,9 +101,33 @@ struct Solution {
 };
 typedef struct Solution Solution;
 
+/**
+ * Free all dynamic arrays of a problem
+ * @param problem
+ */
 void destroy_problem(Problem *problem);
+
+/**
+ * Creates an ampty solution with no trainsets
+ * @param problem
+ * @param[out] sol
+ * @return EXIT_SUCCESS if a solution is created, EXIT_FAILURE in case of allocation error
+ */
 int empty_solution(Problem *problem, Solution *sol);
+
+/**
+ * Copy solution from `orig_sol` to `dest_sol`
+ * @param problem
+ * @param orig_sol
+ * @param dest_sol
+ */
 void copy_solution(Problem *problem, Solution *orig_sol, Solution *dest_sol);
+
+/**
+ * Free all dynamic arrays of a solution `sol`
+ * @param problem
+ * @param sol
+ */
 void destroy_solution(Problem *problem, Solution *sol);
 
 #endif //TSCP_SOLVER_C_DATATYPES_H

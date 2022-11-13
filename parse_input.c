@@ -377,19 +377,19 @@ int add_source_sink_edges(config_t *cfg, Problem *problem) {
 }
 
 
-int parse_problem(const char* file, Problem *problem) {
+int parse_problem(const char* filename, Problem *problem) {
     config_t cfg;
 
     config_init(&cfg);
 
-    if(! config_read_file(&cfg, file))
+    if(! config_read_file(&cfg, filename))
     {
         fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
                 config_error_line(&cfg), config_error_text(&cfg));
         config_destroy(&cfg);
         return(EXIT_FAILURE);
     }
-    printf("Config file loaded\n");
+    printf("Config filename loaded\n");
 
     if(load_constants(&cfg, problem) != EXIT_SUCCESS ||
        create_stations(&cfg, problem) != EXIT_SUCCESS ||

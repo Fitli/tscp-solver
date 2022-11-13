@@ -7,7 +7,19 @@
 
 #include "datatypes.h"
 
-int parse_problem(const char* file, Problem *problem);
+/**
+ * Perse problem specification in libconfig format
+ * @param filename
+ * @param problem
+ * @return
+ */
+int parse_problem(const char* filename, Problem *problem);
+/**
+ * Read solution from csv
+ * @param problem
+ * @param filename
+ * @return
+ */
 Solution read_sol_from_csv(Problem *problem, char *filename);
 
 #endif //TSCP_SOLVER_C_PARSE_CONFIG_H

@@ -8,7 +8,12 @@
 #include "local_search.h"
 #include "operations.h"
 
-// sorting solutions by increasing objective
+/**
+ * sorting solutions by increasing objective
+ * @param a pointer to a solution
+ * @param b pointer to a solution
+ * @return
+ */
 int cmpfunc (const void * a, const void * b) {
     if (((Solution *) a)->objective > ((Solution *) b)->objective) {
         return 1;

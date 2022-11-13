@@ -8,43 +8,39 @@
 #include "change_finder.h"
 #include "heuristics.h"
 
+/**
+ * Randomly determines if the subconnection branch should be explored before the waiting branch in the DFS.
+ * If the subconnection meets any of the condition specified in `prob_conditions`, the probability of returning true
+ * is the corresponding probability in `probabilities`. Otherwise, it is 50%.
+ *
+ * @param sol solution
+ * @param subcon subconnection outgoing from the current node
+ * @param num_prob_conditions length of `prob-conditions` and `probabilities`
+ * @param prob_conditions If `prob_conditions[i]` is met, the probability of returning true is `probabilities[i]`
+ * @param probabilities If `prob_conditions[i]` is met, the probability of returning true is `probabilities[i]`
+ * @return
+ */
 bool go_to_subcon_first(Solution *sol, Edge *subcon,
-                         int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities) {
+                         int num_prob_conditions, EdgeCondition *prob_conditions, const int *probabilities) {
     if(subcon == NULL) {
         return false;
     }
     int prob = 50;
     if(num_prob_conditions && prob_conditions && probabilities) {
         for (int i = 0; i <num_prob_conditions; ++i) {
-            if(eval_edge_condition(prob_conditions[i], subcon, &sol->edge_solution[subcon->id])) {
+            if(eval_edge_condition(&prob_conditions[i], subcon, &sol->edge_solution[subcon->id])) {
                 prob = probabilities[i];
+                break;
             }
         }
     }
     return rand() % 100 < prob;
 }
 
-/**
- * Finds a sequence of edges connecting `start_node` and `end_node`. Uses DFS with random order of searching branches
- *
- * @param problem
- * @param sol
- * @param start_node
- * @param end_node
- * @param wait_condition must hold for all WAITING edges in the trip
- * @param move_condition must hold for all SUBCONNECTION edges in the trip
- * @param allow_overnight if 1, it is allowed to jump between evening and morning in the same station
- * @param num_prob_conditions TODO
- * @param prob_conditions TODO
- * @param probabilities TODO
- * @param[out] edges dynamically alocated array with edges in the trip.
- * @param[out] num_edges number of edges in `edges`
- * @return if the resulting trip contains at leadst 1 SOURCE edge, then the number of SOURCE edges in the result.
- *         Otherwise 1 if a trip was found and 0 if not.
- */
+
 int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
-                             int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities,
+                             int num_prob_conditions, EdgeCondition *prob_conditions, const int *probabilities,
                              Edge ***edges, int *num_edges) {
     bool used_wait[problem->num_nodes];
     bool used_subcon[problem->num_nodes];
@@ -114,7 +110,7 @@ int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node,
 
 int find_random_trip_from(Problem * problem, Solution *sol, Node *start_node, int trip_len,
                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
-                             int num_prob_conditions, EdgeCondition **prob_conditions, const int *probabilities,
+                             int num_prob_conditions, EdgeCondition *prob_conditions, const int *probabilities,
                              Edge ***edges, int *num_edges) {
     Edge *buffer[problem->num_nodes];
     Node *node = start_node;
@@ -162,12 +158,13 @@ int find_random_trip_from(Problem * problem, Solution *sol, Node *start_node, in
     return result;
 }
 
-int find_waiting_between_nodes(Solution *sol, const Problem *problem, const Node *node_front, const Node *node_back,
-                            EdgeCondition *condition, Edge ***edges, int *num_edges) {
-    const Node *n = node_front;
+
+int find_waiting_between_nodes(Solution *sol, const Problem *problem, const Node *start_node, const Node *end_node,
+                               EdgeCondition *condition, Edge ***edges, int *num_edges) {
+    const Node *n = start_node;
     Edge *edge_buffer[problem->num_edges];
     int buff_size = 0;
-    while(n != node_back) {
+    while(n != end_node) {
         if(!n->out_waiting || !eval_edge_condition(condition, n->out_waiting, &sol->edge_solution[n->out_waiting->id])) {
             *edges = NULL;
             *num_edges = 0;

@@ -112,20 +112,12 @@ int eval_edge_condition(const EdgeCondition *cond, const Edge *edge, const EdgeS
     return result;
 }
 
-EdgeCondition *create_edge_condition(int (*predicate)(const Edge *, const EdgeSolution *, void *), void *a_data, EdgeCondition *conj) {
-    EdgeCondition *result = malloc(sizeof(EdgeCondition));
-    result->predicate = predicate;
-    result->a_data = a_data;
-    result->conjunction = conj;
+EdgeCondition create_edge_condition(int (*predicate)(const Edge *, const EdgeSolution *, void *), void *a_data, EdgeCondition *conj) {
+    EdgeCondition result;
+    result.predicate = predicate;
+    result.a_data = a_data;
+    result.conjunction = conj;
     return result;
-}
-
-void free_edge_conditions(EdgeCondition *cond) {
-    while (cond != NULL) {
-        EdgeCondition *next = cond->conjunction;
-        free(cond);
-        cond = next;
-    }
 }
 
 int edge_is_empty(const Edge *edge, const EdgeSolution *sol, void *a_data) {
@@ -146,10 +138,6 @@ int edge_enough_capacity(const Edge *edge, const EdgeSolution *sol, void *a_data
         capacity_change = *(int *) a_data;
     }
     return sol->capacity + capacity_change > edge->minimal_capacity;
-}
-
-int edge_any(const Edge *edge, const EdgeSolution *sol, void *a_data) {
-    return 1;
 }
 
 int edge_none(const Edge *edge, const EdgeSolution *sol, void *a_data) {

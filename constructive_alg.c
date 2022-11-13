@@ -55,7 +55,7 @@ void lower_edge(Solution *sol, Problem *problem, int edge_id) {
             for (int ts2 = 0; ts2 < problem->num_trainset_types; ++ts2) {
                 if(problem->trainset_types[ts1].seats > problem->trainset_types[ts2].seats &&
                 e_sol.capacity - problem->trainset_types[ts1].seats + problem->trainset_types[ts2].seats >= min_cap) {
-                    if(oper_change_train_capacity_dfs_with_edge(sol, problem, ts1, ts2, 1, 1, edge_id)) {
+                    if(oper_change_train_capacity_dfs_with_edge(sol, problem, edge_id, ts1, ts2, 1, 1)) {
                         return;
                     }
                 }
@@ -90,7 +90,7 @@ void increase_edge(Solution *sol, Problem *problem, int edge_id) {
             for (int ts2 = 0; ts2 < problem->num_trainset_types; ++ts2) {
                 if (problem->trainset_types[ts1].seats < problem->trainset_types[ts2].seats &&
                     e_sol.capacity - problem->trainset_types[ts1].seats + problem->trainset_types[ts2].seats >= min_cap) {
-                    oper_change_train_capacity_dfs_with_edge(sol, problem, ts1, ts2, 1, 1, edge_id);
+                    oper_change_train_capacity_dfs_with_edge(sol, problem, edge_id, ts1, ts2, 1, 1);
                     return;
                 }
             }
