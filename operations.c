@@ -117,11 +117,16 @@ int change_trip_capacity_dfs(Solution *sol, Problem *problem, int start_node_id,
     probs[0] = LOW_PROB;
     prob_conds[1] = create_edge_condition(&edge_needs_more_capacity, &capacity_diff, NULL);
     probs[1] = LOW_PROB;
-    prob_conds[3] = create_edge_condition(&edge_enough_capacity, &capacity_diff, NULL);
-    probs[3] = HIGH_PROB;
+    if(capacity_diff > 0) {
+        num_probs = 2;
+    }
+    else {
+        prob_conds[2] = create_edge_condition(&edge_enough_capacity, &capacity_diff, NULL);
+        probs[2] = HIGH_PROB;
+    }
 
     if(find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
-                                &has_ts_cond, &has_ts_cond, allow_jumps, 0, NULL, NULL, &edges, &num_edges)) {
+                                &has_ts_cond, &has_ts_cond, allow_jumps, num_probs, prob_conds, probs, &edges, &num_edges)) {
         for (int i = 0; i < old_ts_amount; ++i) {
             remove_train_array(sol, problem, &problem->trainset_types[old_ts_id], edges, num_edges);
         }
@@ -175,7 +180,7 @@ int remove_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
     probs[2] = HIGH_PROB;
 
     int result = find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
-                                      &has_ts_cond, &has_ts_cond, allow_jumps, 0, NULL, NULL, &edges, &num_edges);
+                                      &has_ts_cond, &has_ts_cond, allow_jumps, num_probs, prob_conds, probs, &edges, &num_edges);
     if(result) {
         remove_train_array(sol, problem, &problem->trainset_types[ts_id], edges, num_edges);
     }

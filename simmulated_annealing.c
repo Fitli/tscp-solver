@@ -9,16 +9,19 @@
 #include "simmulated_annealing.h"
 #include "operations.h"
 
-#define WEIGHT_DECREASE 0.9
+#define WEIGHT_DECREASE 0.99
+#define WEIGHT_UPDATE 100
+#define WEIGHT_MIN 100
 
 void update_weights(int *weights, int accepted_op) {
     for (int i = 0; i < NUM_OPERATIONS; ++i) {
         weights[i] = (int) (weights[i] * WEIGHT_DECREASE);
-        if(weights[i] < 100) {
-            weights[i] = 100;
+        if(weights[i] < WEIGHT_MIN) {
+            weights[i] = WEIGHT_MIN;
         }
     }
-    weights[accepted_op] += 100;
+    if(accepted_op >= 0)
+        weights[accepted_op] += WEIGHT_UPDATE;
 }
 
 double anneal_accept_prob(long long int old_obj, long long int new_obj, double temperature) {
@@ -58,9 +61,12 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         op = select_operation(problem, &new, oper_weights);
         bool accepting = anneal_accept_prob(sol->objective, new.objective, temp) > (double) rand()/RAND_MAX;
         if(accepting){
+            if(new.objective != sol->objective)
+                update_weights(oper_weights, op);
+            else
+                update_weights(oper_weights, -1);
             copy_solution(problem, &new, sol);
             last_accept_iter = iter;
-            update_weights(oper_weights, op);
         }
         if(new.objective < best.objective) {
             copy_solution(problem, &new, &best);
