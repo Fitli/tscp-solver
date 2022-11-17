@@ -9,6 +9,7 @@
 #define TSCP_SOLVER_ACTIONS_H
 
 #define NUM_OPERATIONS 8
+//#define NUM_OPERATIONS (2 * 2 * 2 * 3 * 3)
 
 /**
  * Add trainset beginning and ending in a station.
