@@ -13,7 +13,7 @@
 #include "min_flow.h"
 
 #define TO_DOT 1
-#define SEED 1
+#define SEED 2
 //#define DATASET "../../small_data_2_ts.cfg"
 #define DATASET "../../big_data_2_ts.cfg"
 
@@ -109,7 +109,7 @@ void annealing_main() {
     sol = min_flow(&problem, &problem.trainset_types[1]);
 
     //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
-    simulated_annealing(&problem, &sol, 1000000000, 1000, 1000000000, csv, inittime);
+    simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime);
     long long int old_obj;
     int big_iters = 0;
     do {
