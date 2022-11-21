@@ -10,8 +10,8 @@
 #include "solution_modifier.h"
 #include "random.h"
 
-#define LOW_PROB 1
-#define HIGH_PROB 99
+#define LOW_PROB 0.01
+#define HIGH_PROB 0.9
 
 int destroy_part_waiting(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id);
 int remove_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id, int allow_jumps);
@@ -46,13 +46,14 @@ int insert_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
     int result = 0;
 
     int num_probs = 3;
-    int probs[num_probs];
+    double probs[num_probs];
     EdgeCondition prob_conds[num_probs];
 
     prob_conds[0] = create_edge_condition(&edge_needs_more_capacity, NULL, NULL);
     probs[0] = HIGH_PROB;
     int max_cap_adata[2] = {ts->seats, problem->max_cap};
-    prob_conds[1] = create_edge_condition(&edge_has_more_seats_than, max_cap_adata, NULL);
+    //prob_conds[1] = create_edge_condition(&edge_has_more_seats_than, max_cap_adata, NULL);
+    prob_conds[1] = create_edge_condition(NULL, NULL, NULL);
     probs[1] = LOW_PROB;
     int can_have_ts = problem->max_len - 1;
     prob_conds[2] = create_edge_condition(&edge_has_more_ts_than, &can_have_ts, NULL);
@@ -101,6 +102,9 @@ int oper_change_train_capacity_dfs_with_edge(Solution *sol, Problem *problem, in
 
 int change_trip_capacity_dfs(Solution *sol, Problem *problem, int start_node_id, int end_node_id,
                              int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount, int allow_jumps) {
+    Trainset *old_ts = &problem->trainset_types[old_ts_id];
+    Trainset *new_ts = &problem->trainset_types[new_ts_id];
+
     Edge **edges = NULL;
     int num_edges = 0;
     int result = 0;
@@ -113,21 +117,36 @@ int change_trip_capacity_dfs(Solution *sol, Problem *problem, int start_node_id,
 
     EdgeCondition has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
 
-    int num_probs = 3;
-    int probs[num_probs];
-    EdgeCondition prob_conds[num_probs];
+    int num_probs = 0;
+    double probs[10];
+    EdgeCondition prob_conds[10];
 
-    int max_cap_adata[2] = {capacity_diff, problem->max_cap};
-    prob_conds[0] = create_edge_condition(&edge_has_more_seats_than, &max_cap_adata, NULL);
-    probs[0] = LOW_PROB;
-    prob_conds[1] = create_edge_condition(&edge_needs_more_capacity, &capacity_diff, NULL);
-    probs[1] = LOW_PROB;
-    if(capacity_diff > 0) {
-        num_probs = 2;
+    int old_oper_cost = (old_ts->el_cost + old_ts->fe_cost + old_ts->re_cost - old_ts->abroad_gain) * old_ts_amount;
+    int new_oper_cost = (new_ts->el_cost + new_ts->fe_cost + new_ts->re_cost - new_ts->abroad_gain) * new_ts_amount;
+
+    if(capacity_diff < 0) {
+        int max_cap_adata[2] = {0, problem->max_cap};
+        prob_conds[num_probs] = create_edge_condition(&edge_has_more_seats_than, &max_cap_adata, NULL);
+        probs[num_probs] = HIGH_PROB;
+        num_probs++;
     }
-    else {
-        prob_conds[2] = create_edge_condition(&edge_enough_capacity, &capacity_diff, NULL);
-        probs[2] = HIGH_PROB;
+    if(capacity_diff > 0) {
+        prob_conds[num_probs] = create_edge_condition(&edge_needs_more_capacity, NULL, NULL);
+        probs[num_probs] = HIGH_PROB;
+        num_probs++;
+    }
+    int max_cap_diff_adata[2] = {capacity_diff, problem->max_cap};
+    prob_conds[num_probs] = create_edge_condition(&edge_has_more_seats_than, &max_cap_diff_adata, NULL); // Když tohle fungovalo blbě, bylo to lepší :/
+    //prob_conds[num_probs] = create_edge_condition(NULL, NULL, NULL);
+    probs[num_probs] = LOW_PROB;
+    num_probs++;
+    prob_conds[num_probs] = create_edge_condition(&edge_needs_more_capacity, &capacity_diff, NULL);
+    probs[num_probs] = LOW_PROB;
+    num_probs++;
+    if(old_oper_cost > new_oper_cost) {
+        prob_conds[num_probs] = create_edge_condition(NULL, NULL, NULL);
+        probs[num_probs] = 0.7;
+        num_probs++;
     }
 
     if(find_trip_randomized_dfs(problem, sol, &problem->nodes[start_node_id], &problem->nodes[end_node_id],
@@ -173,13 +192,13 @@ int remove_trip_dfs(Solution *sol, Problem *problem, int start_node_id, int end_
     EdgeCondition has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
 
     int num_probs = 3;
-    int probs[num_probs];
+    double probs[num_probs];
     EdgeCondition prob_conds[num_probs];
 
     prob_conds[0] = create_edge_condition(&edge_needs_more_capacity, &capacity_diff, NULL);
     probs[0] = LOW_PROB;
     int max_cap_adata[2] = {0, problem->max_cap};
-    prob_conds[1] = create_edge_condition(&edge_has_more_ts_than, max_cap_adata, NULL);
+    prob_conds[1] = create_edge_condition(&edge_has_more_seats_than, max_cap_adata, NULL);
     probs[1] = HIGH_PROB;
     prob_conds[2] = create_edge_condition(&edge_has_more_ts_than, &problem->num_trainset_types, NULL);
     probs[2] = HIGH_PROB;
@@ -231,13 +250,13 @@ void oper_reschedule_dfs(Solution *sol, Problem *problem, int start_node_id, int
     EdgeCondition has_ts_cond = create_edge_condition(&edge_has_trainset, a_data, NULL);
 
     int num_probs = 3;
-    int probs[num_probs];
+    double probs[num_probs];
     EdgeCondition prob_conds[num_probs];
 
     prob_conds[0] = create_edge_condition(&edge_needs_more_capacity, &capacity_diff, NULL);
     probs[0] = LOW_PROB;
     int max_cap_adata[2] = {0, problem->max_cap};
-    prob_conds[1] = create_edge_condition(&edge_has_more_ts_than, max_cap_adata, NULL);
+    prob_conds[1] = create_edge_condition(&edge_has_more_seats_than, max_cap_adata, NULL);
     probs[1] = HIGH_PROB;
     prob_conds[2] = create_edge_condition(&edge_has_more_ts_than, &problem->num_trainset_types, NULL);
     probs[2] = HIGH_PROB;
@@ -252,13 +271,16 @@ void oper_reschedule_dfs(Solution *sol, Problem *problem, int start_node_id, int
 
     Node *end_node = edges[num_edges - 1]->end_node;
 
-    insert_trip_dfs(sol, problem, start_node_id, end_node->id, 0, ts_id);
+    //insert_trip_dfs(sol, problem, start_node_id, end_node->id, 0, ts_id);
+    change_trip_capacity_dfs(sol, problem, start_node_id, end_node->id, ts_id, ts_id, 0, 1, 0);
 
 }
 
 void oper_reschedule_dfs_from_to(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
-    if(remove_trip_dfs(sol, problem, start_node_id, end_node_id, ts_id, 0))
-        insert_trip_dfs(sol, problem, start_node_id, end_node_id, 0, ts_id);
+    //if(remove_trip_dfs(sol, problem, start_node_id, end_node_id, ts_id, 0))
+    //    insert_trip_dfs(sol, problem, start_node_id, end_node_id, 0, ts_id);
+    if(change_trip_capacity_dfs(sol, problem, start_node_id, end_node_id, ts_id, ts_id, 1, 0, 0))
+        change_trip_capacity_dfs(sol, problem, start_node_id, end_node_id, ts_id, ts_id, 0, 1, 0);
 }
 
 int select_operation(Problem *problem, Solution *sol, int *weights) {
@@ -280,7 +302,8 @@ int select_operation(Problem *problem, Solution *sol, int *weights) {
         case 0:
             operation_name = "add edge dfs";
             int edge = roulette_wheel(sol->cap_can_add, problem->num_edges);
-            oper_add_train_with_edge_dfs(sol, problem, edge, rand_ts);
+            //oper_add_train_with_edge_dfs(sol, problem, edge, rand_ts);
+            oper_change_train_capacity_dfs_with_edge(sol, problem, rand_edge, rand_ts, rand_ts, 0, 1);
             break;
         case 1:
             operation_name = "remove waiting train";
@@ -292,7 +315,8 @@ int select_operation(Problem *problem, Solution *sol, int *weights) {
             int ts = 0;
             if(sol->edge_solution[edge].num_trainsets[0] == 0 || rand() % 2 == 0)
                 ts = 1;
-            oper_remove_train_with_edge_dfs(sol, problem, edge, ts);
+            //oper_remove_train_with_edge_dfs(sol, problem, edge, ts);
+            oper_change_train_capacity_dfs_with_edge(sol, problem, rand_edge, ts, ts, 1, 0);
             break;
         case 3:
             operation_name = "change dfs";
@@ -321,7 +345,7 @@ int select_operation(Problem *problem, Solution *sol, int *weights) {
                 ts1 = 1;
             }
             //oper_change_train_capacity_dfs(sol, problem, rand_st, ts1, rand_ts2, 1, 2);
-            oper_change_train_capacity_dfs_with_edge(sol, problem, rand_edge, ts1, rand_ts2, 1, 1);
+            oper_change_train_capacity_dfs_with_edge(sol, problem, rand_edge, ts1, rand_ts2, 1, 2);
             break;
         case 6:
             operation_name = "reschedule_from_to";

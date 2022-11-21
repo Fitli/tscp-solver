@@ -30,7 +30,7 @@
  */
 int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
-                             int num_prob_conditions, EdgeCondition *prob_conditions, const int *probabilities,
+                             int num_prob_conditions, EdgeCondition *prob_conditions, const double *probabilities,
                              Edge ***edges, int *num_edges);
 
 /**
@@ -55,7 +55,7 @@ int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node,
  */
 int find_random_trip_from(Problem * problem, Solution *sol, Node *start_node, int trip_len,
                           EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
-                          int num_prob_conditions, EdgeCondition *prob_conditions, const int *probabilities,
+                          int num_prob_conditions, EdgeCondition *prob_conditions, const double *probabilities,
                           Edge ***edges, int *num_edges);
 
 /**

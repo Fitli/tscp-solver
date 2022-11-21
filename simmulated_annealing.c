@@ -55,7 +55,7 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
     int iter = 0;
     int last_accept_iter = 0;
     while (iter - last_accept_iter < 1000 && iter < max_iter) {
-        if(iter % 1000 == 0)
+        if(iter % 10000 == 0)
             printf("%d %lld %f %d %d\n", iter, sol->objective, temp, sol->num_trainstes[0], sol->num_trainstes[1]);
         fflush(stdout);
         copy_solution(problem, sol, &new);

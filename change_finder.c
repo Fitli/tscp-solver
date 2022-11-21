@@ -21,11 +21,11 @@
  * @return
  */
 bool go_to_subcon_first(Solution *sol, Edge *subcon,
-                         int num_prob_conditions, EdgeCondition *prob_conditions, const int *probabilities) {
+                         int num_prob_conditions, EdgeCondition *prob_conditions, const double *probabilities) {
     if(subcon == NULL) {
         return false;
     }
-    int prob = 50;
+    double prob = 0.4;
     if(num_prob_conditions && prob_conditions && probabilities) {
         for (int i = 0; i <num_prob_conditions; ++i) {
             if(eval_edge_condition(&prob_conditions[i], subcon, &sol->edge_solution[subcon->id])) {
@@ -34,13 +34,13 @@ bool go_to_subcon_first(Solution *sol, Edge *subcon,
             }
         }
     }
-    return rand() % 100 < prob;
+    return rand() < prob * RAND_MAX;
 }
 
 
 int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node, Node *end_node,
                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
-                             int num_prob_conditions, EdgeCondition *prob_conditions, const int *probabilities,
+                             int num_prob_conditions, EdgeCondition *prob_conditions, const double *probabilities,
                              Edge ***edges, int *num_edges) {
     bool used_wait[problem->num_nodes];
     bool used_subcon[problem->num_nodes];
@@ -110,7 +110,7 @@ int find_trip_randomized_dfs(Problem * problem, Solution *sol, Node *start_node,
 
 int find_random_trip_from(Problem * problem, Solution *sol, Node *start_node, int trip_len,
                              EdgeCondition *wait_condition, EdgeCondition *move_condition, int allow_overnight,
-                             int num_prob_conditions, EdgeCondition *prob_conditions, const int *probabilities,
+                             int num_prob_conditions, EdgeCondition *prob_conditions, const double *probabilities,
                              Edge ***edges, int *num_edges) {
     Edge *buffer[problem->num_nodes];
     Node *node = start_node;

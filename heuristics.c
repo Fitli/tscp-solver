@@ -106,7 +106,8 @@ int select_station_random(Problem *problem, Solution *solution) {
 int eval_edge_condition(const EdgeCondition *cond, const Edge *edge, const EdgeSolution *sol){
     int result = 1;
     while(cond != NULL && result) {
-        result = cond->predicate(edge, sol, cond->a_data);
+        if(cond->predicate)
+            result = cond->predicate(edge, sol, cond->a_data);
         cond = cond->conjunction;
     }
     return result;
@@ -173,6 +174,6 @@ int edge_has_more_ts_than(const Edge *edge, const EdgeSolution *sol, void *a_dat
 // a_data: array of integers - modification of number of seats, capacity treshold
 int edge_has_more_seats_than(const Edge *edge, const EdgeSolution *sol, void *a_data) {
     int cap_modif = *(int *) a_data;
-    int tresholed = *((int *) a_data);
-    return sol->capacity + cap_modif > tresholed;
+    int treshold = *((int *) a_data + 1);
+    return sol->capacity + cap_modif > treshold;
 }
