@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "local_search.h"
+#include "tabu_search.h"
 #include "operations.h"
 
 /**
@@ -38,9 +38,7 @@ void perturbate(Problem *problem, Solution *solution, double remove_rate) {
     }
 }
 
-void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int stop_no_improve, clock_t inittime, FILE *csv_objective, FILE *csv_operations) {
-
-    printf("objective: %lld\n", sol->objective);
+void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int stop_no_improve, int max_iters, clock_t inittime, FILE *csv_objective, FILE *csv_operations) {
 
     int iteration = 0;
     long long int taboo[taboo_size];
@@ -58,8 +56,7 @@ void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborh
     copy_solution(problem, sol, &overall_best);
     int overall_best_iter = 0;
 
-    while(iteration - overall_best_iter < stop_no_improve) {
-        printf("%d\n", iteration);
+    while(iteration - overall_best_iter < stop_no_improve && iteration < max_iters) {
 
         int local_counter = 0;
         while (local_counter < neighborhood_size) {
@@ -100,7 +97,8 @@ void local_search(Problem *problem, Solution *sol, int taboo_size, int neighborh
             copy_solution(problem, sol, &overall_best);
             overall_best_iter = iteration;
         }
-        fprintf(csv_objective, "%d,%lld,%f\n", iteration, sol->objective, (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
+        if(csv_objective)
+            fprintf(csv_objective, "%d,%lld,%f\n", iteration, sol->objective, (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
         iteration++;
     }
 

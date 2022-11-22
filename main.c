@@ -9,7 +9,7 @@
 #include "dot_printer.h"
 #include "output.h"
 #include "simmulated_annealing.h"
-#include "local_search.h"
+#include "tabu_search.h"
 #include "constructive_alg.h"
 #include "min_flow.h"
 #include "experiments.h"
@@ -53,7 +53,7 @@ void local_search_main() {
     fprintf(csv_objective, "iter,obj,time\n");
     FILE *csv_operations = fopen("local_search_operations_big.csv", "w");
     fprintf(csv_operations, "iter,operation,taboo,obj_change\n");
-    local_search(&problem, &sol, 10, 30, 20000, inittime, csv_objective, csv_operations);
+    tabu_search(&problem, &sol, 10, 30, 20000, 1000000, inittime, csv_objective, csv_operations);
 
     analyze_solution(&sol, &problem);
 
@@ -166,6 +166,6 @@ int min_flow_main() {
 }
 
 int main() {
-    annealing_parameters();
+    //annealing_parameters();
     return 0;
 }

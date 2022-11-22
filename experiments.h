@@ -8,3 +8,4 @@
 #endif //TSCP_SOLVER_EXPERIMENTS_H
 
 void annealing_parameters();
+void tabu_params();
