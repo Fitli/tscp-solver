@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 #include "datatypes.h"
 #include "parse_input.h"
 #include "test.h"
@@ -11,6 +12,7 @@
 #include "local_search.h"
 #include "constructive_alg.h"
 #include "min_flow.h"
+#include "experiments.h"
 
 #define TO_DOT 1
 #define SEED 2
@@ -110,12 +112,12 @@ void annealing_main() {
 
     //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
     double temp = init_temp(&problem, &sol, 1000, 0.5);
-    simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime);
+    simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime, LINEAR, true);
     long long int old_obj;
     int big_iters = 0;
     do {
         old_obj = sol.objective;
-        simulated_annealing(&problem, &sol, 100000000, 1000, 1000000000, csv, inittime);
+        simulated_annealing(&problem, &sol, 100000000, 1000, 1000000000, csv, inittime, LINEAR, true);
         big_iters++;
     } while(sol.objective < old_obj);
 
@@ -124,11 +126,11 @@ void annealing_main() {
     big_iters = 0;
     do {
         old_obj = sol.objective;
-        simulated_annealing(&problem, &sol, 1000000, 10, 1000000000, csv, inittime);
+        simulated_annealing(&problem, &sol, 1000000, 10, 1000000000, csv, inittime, LINEAR, true);
         big_iters++;
     } while(sol.objective < old_obj);
 
-    printf("iters: %d\n", big_iters);*/
+    printf("iters: %d\n", big_iters);
     printf("time: %f s\n", (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
 
     analyze_solution(&sol, &problem);
@@ -143,46 +145,7 @@ void annealing_main() {
     destroy_problem(&problem);
 }
 
-void mixed_main() {
-    srand(SEED);
 
-
-    Problem problem;
-    parse_problem(DATASET, &problem);
-
-    clock_t inittime = clock();
-
-    Solution sol;
-    empty_solution(&problem, &sol);
-
-
-    FILE *ls_objective = fopen("local_search_objective_big_mix.csv", "w");
-    fprintf(ls_objective, "iter,obj,time\n");
-
-    FILE *an_objective = fopen("annealing_big_mix.csv", "w");
-    fprintf(an_objective, "oper,accepted,obj,temp,time,");
-    for (int i = 0; i < problem.num_trainset_types; ++i) {
-        fprintf(an_objective, "trainset_%d, ", i);
-    }
-
-
-    local_search(&problem, &sol, 10, 30, 200, inittime, ls_objective, NULL);
-    simulated_annealing(&problem, &sol, 1000000000, 1000, 1000000000, an_objective, inittime);
-    local_search(&problem, &sol, 10, 30, 200, inittime, ls_objective, NULL);
-    simulated_annealing(&problem, &sol, 1000000000, 1000, 1000000000, an_objective, inittime);
-
-    analyze_solution(&sol, &problem);
-
-    fclose(ls_objective);
-    fclose(an_objective);
-
-    if(TO_DOT) {
-        print_problem(&problem, &sol, "final.dot", "final solution");
-    }
-
-    destroy_solution(&problem, &sol);
-    destroy_problem(&problem);
-}
 
 int min_flow_main() {
     srand(SEED);
@@ -203,6 +166,6 @@ int min_flow_main() {
 }
 
 int main() {
-    annealing_main();
+    annealing_parameters();
     return 0;
 }
