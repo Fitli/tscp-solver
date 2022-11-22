@@ -9,4 +9,5 @@
 
 #endif //TSCP_SOLVER_SIMMULATED_ANNEALING_H
 
+double init_temp(Problem *problem, Solution *solution, int neigh_size, double avg_accept_prob);
 void simulated_annealing(Problem *problem, Solution *sol, double init_temp, double temp_decrease, int max_iter, FILE *csv, clock_t inittime);

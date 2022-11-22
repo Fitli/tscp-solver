@@ -14,6 +14,23 @@
 #define WEIGHT_UPDATE 100
 #define WEIGHT_MIN 100
 
+double init_temp(Problem *problem, Solution *solution, int neigh_size, double avg_accept_prob) {
+    int increas_num = 0;
+    long long increas_sum = 0;
+    Solution modified_sol;
+    empty_solution(problem, &modified_sol);
+    for (int i = 0; i < neigh_size; ++i) {
+        copy_solution(problem, solution, &modified_sol);
+        select_operation(problem, &modified_sol, NULL);
+        if(modified_sol.objective > solution->objective && modified_sol.objective < 1e12) {
+            increas_num++;
+            increas_sum += modified_sol.objective;
+        }
+    }
+    double increas_avg = (double) increas_sum/increas_num;
+    return -1 * increas_avg/log(avg_accept_prob);
+}
+
 void update_weights(Problem *problem, int *weights, int accepted_op) {
     for (int i = 0; i < NUM_OPERATIONS; ++i) {
         weights[i] = (int) (weights[i] * WEIGHT_DECREASE);

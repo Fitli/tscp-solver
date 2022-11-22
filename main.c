@@ -109,6 +109,7 @@ void annealing_main() {
     sol = min_flow(&problem, &problem.trainset_types[1]);
 
     //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
+    double temp = init_temp(&problem, &sol, 1000, 0.5);
     simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime);
     long long int old_obj;
     int big_iters = 0;
@@ -127,7 +128,7 @@ void annealing_main() {
         big_iters++;
     } while(sol.objective < old_obj);
 
-    printf("iters: %d\n", big_iters);
+    printf("iters: %d\n", big_iters);*/
     printf("time: %f s\n", (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
 
     analyze_solution(&sol, &problem);
