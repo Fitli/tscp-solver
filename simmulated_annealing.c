@@ -56,7 +56,7 @@ double anneal_accept_prob(long long int old_obj, long long int new_obj, double t
     return metropolis;
 }
 
-void simulated_annealing(Problem *problem, Solution *sol, double init_temp, double temp_decrease, int max_iter, FILE *csv, clock_t inittime) {
+void simulated_annealing(Problem *problem, Solution *sol, double init_temp, double temp_decrease, int max_iter, FILE *csv, clock_t inittime, enum TempDecrease temp_decrease_type) {
 
     Solution best;
     Solution new;
@@ -101,7 +101,12 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
 
         iter++;
         if(temp > 0) {
-            temp -= temp_decrease;
+            if(temp_decrease_type == LINEAR) {
+                temp -= temp_decrease;
+            }
+            if(temp_decrease_type == GEOMETRIC) {
+                temp *= temp_decrease;
+            }
         }
     }
 
