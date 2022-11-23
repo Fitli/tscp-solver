@@ -115,12 +115,12 @@ void annealing_main() {
     //double temp = init_temp(&problem, &sol, 1000, 0.5);
     double temp = 700000000;
     //simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime, LINEAR, true);
-    simulated_annealing(&problem, &sol, temp, 0.99998, 1e6, NULL, inittime, GEOMETRIC, true);
+    simulated_annealing(&problem, &sol, temp, 0.99998, 1e6, NULL, inittime, GEOMETRIC, true, true);
     long long int old_obj;
     int big_iters = 0;
     do {
         old_obj = sol.objective;
-        simulated_annealing(&problem, &sol, 100000000, 1000, 1000000000, csv, inittime, LINEAR, true);
+        simulated_annealing(&problem, &sol, 100000000, 1000, 1000000000, csv, inittime, LINEAR, true, true);
         big_iters++;
     } while(sol.objective < old_obj);
 
@@ -129,7 +129,7 @@ void annealing_main() {
     big_iters = 0;
     do {
         old_obj = sol.objective;
-        simulated_annealing(&problem, &sol, 1000000, 10, 1000000000, csv, inittime, LINEAR, true);
+        simulated_annealing(&problem, &sol, 1000000, 10, 1000000000, csv, inittime, LINEAR, true, true);
         big_iters++;
     } while(sol.objective < old_obj);
 

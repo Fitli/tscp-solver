@@ -41,7 +41,7 @@ void annealing_parameters(const char *filename) {
             srand(seed);
             copy_solution(&problem, &init_sol, &sol);
             clock_t init_time = clock();
-            simulated_annealing(&problem, &sol, init_temp, lin_temp_decrease, STEPS, NULL, init_time, LINEAR, false);
+            simulated_annealing(&problem, &sol, init_temp, lin_temp_decrease, STEPS, NULL, init_time, LINEAR, false, false);
             clock_t time = clock() - init_time;
             printf("%d,%f,lin,%f,%lld,%f\n", seed, init_temp, lin_temp_decrease, sol.objective, (double)(time)/(double)CLOCKS_PER_SEC);
         }
@@ -49,7 +49,7 @@ void annealing_parameters(const char *filename) {
             srand(seed);
             copy_solution(&problem, &init_sol, &sol);
             clock_t init_time = clock();
-            simulated_annealing(&problem, &sol, init_temp, geom_decrease, STEPS, NULL, init_time, GEOMETRIC, false);
+            simulated_annealing(&problem, &sol, init_temp, geom_decrease, STEPS, NULL, init_time, GEOMETRIC, false, false);
             clock_t time = clock() - init_time;
             printf("%d,%f,geo,%f,%lld,%f\n", seed, init_temp, geom_decrease, sol.objective, (double)(time)/(double)CLOCKS_PER_SEC);
         }
