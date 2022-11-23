@@ -307,7 +307,6 @@ int assign_stations(Problem *problem) {
 
             node = node->out_waiting->end_node;
         } while (node->out_waiting != NULL);
-        printf("\n");
         if (node != station->sink_node) {
             fprintf(stderr, "Unconsistent waiting nodes.\n");
             return EXIT_FAILURE;
