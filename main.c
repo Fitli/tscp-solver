@@ -18,6 +18,7 @@
 #define SEED 2
 //#define DATASET "../../small_data_2_ts.cfg"
 #define DATASET "../../big_data_2_ts.cfg"
+//#define DATASET "../../data-cfg/real300_500.cfg"
 
 void read_solution_main() {
     Problem problem;
@@ -111,8 +112,10 @@ void annealing_main() {
     sol = min_flow(&problem, &problem.trainset_types[1]);
 
     //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
-    double temp = init_temp(&problem, &sol, 1000, 0.5);
-    simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime, LINEAR, true);
+    //double temp = init_temp(&problem, &sol, 1000, 0.5);
+    double temp = 700000000;
+    //simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime, LINEAR, true);
+    simulated_annealing(&problem, &sol, temp, 0.99998, 1e6, NULL, inittime, GEOMETRIC, true);
     long long int old_obj;
     int big_iters = 0;
     do {
@@ -165,7 +168,8 @@ int min_flow_main() {
     destroy_problem(&problem);
 }
 
-int main() {
-    //annealing_parameters();
+int main(int argc, char *argv[]) {
+    annealing_parameters(argv[1]);
+    //annealing_main();
     return 0;
 }

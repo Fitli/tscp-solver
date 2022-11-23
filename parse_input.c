@@ -290,7 +290,6 @@ int create_nodes(config_t *cfg, Problem *problem) {
 
 int assign_stations(Problem *problem) {
     for(int i = 0; i < problem->num_stations; i++) {
-        printf("stanice %d:\n", i);
         Station *station = &(problem->stations[i]);
 
         station->num_nodes = 0;
@@ -299,11 +298,9 @@ int assign_stations(Problem *problem) {
         Node *node = station->source_node;
         time_t time = 0;
         do {
-            printf("n%d ", node->id);
             node->station = station;
             node->time = time;
             time++;
-            printf("e%d ", node->out_waiting->id);
 
             station->node_ids[station->num_nodes] = node->id;
             station->num_nodes++;
@@ -389,7 +386,6 @@ int parse_problem(const char* filename, Problem *problem) {
         config_destroy(&cfg);
         return(EXIT_FAILURE);
     }
-    printf("Config filename loaded\n");
 
     if(load_constants(&cfg, problem) != EXIT_SUCCESS ||
        create_stations(&cfg, problem) != EXIT_SUCCESS ||
@@ -402,7 +398,6 @@ int parse_problem(const char* filename, Problem *problem) {
     };
 
     config_destroy(&cfg);
-    printf("Config successfully parsed\n");
 
     return(EXIT_SUCCESS);
 }

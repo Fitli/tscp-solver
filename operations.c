@@ -136,7 +136,7 @@ int change_trip_capacity_dfs(Solution *sol, Problem *problem, int start_node_id,
         num_probs++;
     }
     int max_cap_diff_adata[2] = {capacity_diff, problem->max_cap};
-    prob_conds[num_probs] = create_edge_condition(&edge_has_more_seats_than, &max_cap_diff_adata, NULL); // Když tohle fungovalo blbě, bylo to lepší :/
+    prob_conds[num_probs] = create_edge_condition(&edge_has_more_seats_than, &max_cap_diff_adata, NULL);
     //prob_conds[num_probs] = create_edge_condition(NULL, NULL, NULL);
     probs[num_probs] = LOW_PROB;
     num_probs++;
@@ -258,7 +258,7 @@ void oper_reschedule_dfs(Solution *sol, Problem *problem, int start_node_id, int
     int max_cap_adata[2] = {0, problem->max_cap};
     prob_conds[1] = create_edge_condition(&edge_has_more_seats_than, max_cap_adata, NULL);
     probs[1] = HIGH_PROB;
-    prob_conds[2] = create_edge_condition(&edge_has_more_ts_than, &problem->num_trainset_types, NULL);
+    prob_conds[2] = create_edge_condition(&edge_has_more_ts_than, &problem->max_len, NULL);
     probs[2] = HIGH_PROB;
 
     Node *start_node = &problem->nodes[start_node_id];
