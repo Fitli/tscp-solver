@@ -56,9 +56,9 @@ void annealing_parameters(const char *filename) {
     }
 }
 
-void tabu_params() {
+void tabu_params(const char *filename) {
     Problem problem;
-    parse_problem("../../big_data_2_ts.cfg", &problem);
+    parse_problem(filename, &problem);
 
     Solution init_sol;
     empty_solution(&problem, &init_sol);

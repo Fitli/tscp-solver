@@ -8,4 +8,4 @@
 #endif //TSCP_SOLVER_EXPERIMENTS_H
 
 void annealing_parameters(const char *filename);
-void tabu_params();
+void tabu_params(const char *filename);
