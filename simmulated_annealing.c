@@ -57,7 +57,7 @@ double anneal_accept_prob(long long int old_obj, long long int new_obj, double t
 }
 
 void simulated_annealing(Problem *problem, Solution *sol, double init_temp, double temp_decrease, int max_iter,
-                         FILE *csv, clock_t inittime, enum TempDecrease temp_decrease_type, bool use_oper_weights, bool verbose) {
+                         FILE *csv, const char* prefix, clock_t inittime, enum TempDecrease temp_decrease_type, bool use_oper_weights, bool verbose) {
 
     Solution best;
     Solution new;
@@ -92,7 +92,7 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
             copy_solution(problem, &new, &best);
         }
         if(csv && iter%1000==0) {
-            fprintf(csv, "%d, %lld, %f, %f, ", accepting, sol->objective,temp,
+            fprintf(csv, "%s%d, %lld, %f, %f, ", prefix,accepting, sol->objective,temp,
                     (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
             for (int i = 0; i < problem->num_trainset_types; ++i) {
                 fprintf(csv, "%d, ", sol->num_trainstes[i]);
