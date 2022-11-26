@@ -56,6 +56,29 @@ void annealing_parameters(const char *filename) {
     }
 }
 
+void hill_climb(const char *filename) {
+    Problem problem;
+    parse_problem(filename, &problem);
+
+    Solution init_sol;
+    empty_solution(&problem, &init_sol);
+    Solution sol;
+    empty_solution(&problem, &sol);
+
+    init_sol = min_flow(&problem, &problem.trainset_types[1]);
+
+    printf("SEED,temp,type,decrease,obj,time\n");
+
+    for (int seed = 0; seed < SEEDS; ++seed) {
+        srand(seed);
+        copy_solution(&problem, &init_sol, &sol);
+        clock_t init_time = clock();
+        simulated_annealing(&problem, &sol, 0.0, 0.0, STEPS, NULL, init_time, GEOMETRIC, false, false);
+        clock_t time = clock() - init_time;
+        printf("%d,%f,geo,%f,%lld,%f\n", seed, 0.0, 0.0, sol.objective, (double)(time)/(double)CLOCKS_PER_SEC);
+    }
+}
+
 void tabu_params(const char *filename) {
     Problem problem;
     parse_problem(filename, &problem);

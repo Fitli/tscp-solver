@@ -9,3 +9,4 @@
 
 void annealing_parameters(const char *filename);
 void tabu_params(const char *filename);
+void hill_climb(const char *filename);

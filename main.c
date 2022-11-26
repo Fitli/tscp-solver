@@ -169,7 +169,8 @@ int min_flow_main() {
 }
 
 int main(int argc, char *argv[]) {
-    tabu_params(argv[1]);
+    //tabu_params(argv[1]);
     //annealing_main();
+    hill_climb("../../big_data_2_ts.cfg");
     return 0;
 }
