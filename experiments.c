@@ -28,12 +28,13 @@ void annealing_parameters(const char *filename) {
     init_sol = min_flow(&problem, &problem.trainset_types[1]);
     double temp_formula = init_temp(&problem, &init_sol, 1000, 0.5);
 
-    double temperatures[7] = {temp_formula, 1e11, 1e10, 1e9, 1e8, 1e7, 1e6};
+    //double temperatures[7] = {temp_formula, 1e11, 1e10, 1e9, 1e8, 1e7, 1e6};
+    double temperatures[1] = {temp_formula};
 
 
     printf("SEED,temp,type,decrease,obj,time\n");
 
-    for (int i = 0; i < 7; ++i) {
+    for (int i = 0; i < 1; ++i) {
         double init_temp = temperatures[i];
         double lin_temp_decrease = init_temp/STEPS;
         double geom_decrease = 1/pow(init_temp, 1/STEPS);

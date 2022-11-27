@@ -19,12 +19,13 @@ double init_temp(Problem *problem, Solution *solution, int neigh_size, double av
     long long increas_sum = 0;
     Solution modified_sol;
     empty_solution(problem, &modified_sol);
+    copy_solution(problem, solution, &modified_sol);
     for (int i = 0; i < neigh_size; ++i) {
-        copy_solution(problem, solution, &modified_sol);
+        long long old_obj = modified_sol.objective;
         select_operation(problem, &modified_sol, NULL);
-        if(modified_sol.objective > solution->objective && modified_sol.objective < 1e12) {
+        if(modified_sol.objective > old_obj && modified_sol.objective - old_obj < (long long) 1e12) {
             increas_num++;
-            increas_sum += modified_sol.objective;
+            increas_sum += modified_sol.objective - old_obj;
         }
     }
     double increas_avg = (double) increas_sum/increas_num;

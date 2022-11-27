@@ -109,11 +109,11 @@ void annealing_main() {
     Solution sol;
     empty_solution(&problem, &sol);
 
-    sol = min_flow(&problem, &problem.trainset_types[1]);
+    //sol = min_flow(&problem, &problem.trainset_types[1]);
 
     //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
-    //double temp = init_temp(&problem, &sol, 1000, 0.5);
-    double temp = 700000000;
+    double temp = init_temp(&problem, &sol, 1000, 0.5);
+    //double temp = 700000000;
     //simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime, LINEAR, true);
     simulated_annealing(&problem, &sol, temp, 0.99998, 1e6, NULL, NULL, inittime, GEOMETRIC, true, true);
     long long int old_obj;
@@ -170,8 +170,9 @@ int min_flow_main() {
 
 int main(int argc, char *argv[]) {
     //tabu_params(argv[1]);
+    annealing_parameters(argv[1]);
     //annealing_main();
     //hill_climb("../../big_data_2_ts.cfg");
-    annealing_run(argv[1]);
+    //annealing_run(argv[1]);
     return 0;
 }
