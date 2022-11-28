@@ -118,11 +118,9 @@ void annealing_run(const char *filename) {
     Problem problem;
     parse_problem(filename, &problem);
 
-    Solution sol;
-    empty_solution(&problem, &sol);
+    Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
 
-    sol = min_flow(&problem, &problem.trainset_types[1]);
-    double temp = init_temp(&problem, &sol, 1000, 0.5);
+    double temp = init_temp(&problem, &init_sol, 1000, 0.5);
     double geom_decrease = 1/pow(temp, 1/STEPS);
 
 
@@ -130,6 +128,9 @@ void annealing_run(const char *filename) {
     fflush(stdout);
 
     for (int i = 0; i < SEEDS; ++i) {
+        Solution sol;
+        empty_solution(&problem, &sol);
+        copy_solution(&problem, &sol, &init_sol);
         char sseed[5];
         sprintf(sseed, "%d,", i);
         clock_t init_time = clock();
@@ -142,10 +143,8 @@ void tabu_run(const char *filename) {
     Problem problem;
     parse_problem(filename, &problem);
 
-    Solution sol;
-    empty_solution(&problem, &sol);
+    Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
 
-    sol = min_flow(&problem, &problem.trainset_types[1]);
     int tabu_len = 10;
     int neigh_size = 5000;
 
@@ -153,6 +152,9 @@ void tabu_run(const char *filename) {
     fflush(stdout);
 
     for (int i = 0; i < SEEDS; ++i) {
+        Solution sol;
+        empty_solution(&problem, &sol);
+        copy_solution(&problem, &sol, &init_sol);
         char sseed[5];
         sprintf(sseed, "%d,", i);
         clock_t init_time = clock();
