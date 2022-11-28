@@ -126,7 +126,7 @@ void annealing_run(const char *filename) {
     double geom_decrease = 1/pow(temp, 1/STEPS);
 
 
-    printf("seed,oper,accepted,obj,temp,time\n");
+    printf("seed,accepted,obj,temp,time\n");
     fflush(stdout);
 
     for (int i = 0; i < SEEDS; ++i) {
