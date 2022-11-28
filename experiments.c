@@ -13,7 +13,7 @@
 #include "simmulated_annealing.h"
 #include "tabu_search.h"
 
-#define STEPS 1e6
+#define STEPS 2e6
 #define SEEDS 10
 
 void annealing_parameters(const char *filename) {
@@ -130,7 +130,7 @@ void annealing_run(const char *filename) {
     for (int i = 0; i < SEEDS; ++i) {
         Solution sol;
         empty_solution(&problem, &sol);
-        copy_solution(&problem, &sol, &init_sol);
+        copy_solution(&problem, &init_sol, &sol);
         char sseed[5];
         sprintf(sseed, "%d,", i);
         clock_t init_time = clock();
@@ -154,7 +154,7 @@ void tabu_run(const char *filename) {
     for (int i = 0; i < SEEDS; ++i) {
         Solution sol;
         empty_solution(&problem, &sol);
-        copy_solution(&problem, &sol, &init_sol);
+        copy_solution(&problem, &init_sol, &sol);
         char sseed[5];
         sprintf(sseed, "%d,", i);
         clock_t init_time = clock();
