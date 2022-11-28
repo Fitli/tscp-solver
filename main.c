@@ -16,8 +16,8 @@
 
 #define TO_DOT 1
 #define SEED 2
-//#define DATASET "../../small_data_2_ts.cfg"
-#define DATASET "../../big_data_2_ts.cfg"
+#define DATASET "../../small_data_2_ts.cfg"
+//#define DATASET "../../big_data_2_ts.cfg"
 //#define DATASET "../../data-cfg/real300_500.cfg"
 
 void read_solution_main() {
@@ -36,7 +36,7 @@ void read_solution_main() {
     destroy_problem(&problem);
 }
 
-void local_search_main() {
+void tabu_search_main() {
     srand(SEED);
 
 
@@ -109,7 +109,7 @@ void annealing_main() {
     Solution sol;
     empty_solution(&problem, &sol);
 
-    //sol = min_flow(&problem, &problem.trainset_types[1]);
+    sol = min_flow(&problem, &problem.trainset_types[1]);
 
     //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
     double temp = init_temp(&problem, &sol, 1000, 0.5);
@@ -170,8 +170,8 @@ int min_flow_main() {
 
 int main(int argc, char *argv[]) {
     //tabu_params(argv[1]);
-    annealing_parameters(argv[1]);
-    //annealing_main();
+    //annealing_parameters(argv[1]);
+    annealing_main();
     //hill_climb("../../big_data_2_ts.cfg");
     //annealing_run(argv[1]);
     return 0;

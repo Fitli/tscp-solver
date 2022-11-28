@@ -139,3 +139,26 @@ void annealing_run(const char *filename) {
     }
 
 }
+
+void tabu_run(const char *filename) {
+    Problem problem;
+    parse_problem(filename, &problem);
+
+    Solution sol;
+    empty_solution(&problem, &sol);
+
+    sol = min_flow(&problem, &problem.trainset_types[1]);
+    int tabu_len = 10;
+    int neigh_size = 5000;
+
+    printf("iter,obj,time\n");
+    fflush(stdout);
+
+    for (int i = 0; i < SEEDS; ++i) {
+        char sseed[5];
+        sprintf(sseed, "%d,", i);
+        clock_t init_time = clock();
+        tabu_search(&problem, &sol, tabu_len, neigh_size, STEPS, STEPS/neigh_size, init_time, stdout, NULL);
+    }
+
+}
