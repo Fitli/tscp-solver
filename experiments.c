@@ -118,17 +118,15 @@ void annealing_run(const char *filename) {
     Problem problem;
     parse_problem(filename, &problem);
 
-    Solution init_sol;
-    empty_solution(&problem, &init_sol);
     Solution sol;
     empty_solution(&problem, &sol);
 
-    init_sol = min_flow(&problem, &problem.trainset_types[1]);
-    double temp = init_temp(&problem, &init_sol, 1000, 0.5);
+    sol = min_flow(&problem, &problem.trainset_types[1]);
+    double temp = init_temp(&problem, &sol, 1000, 0.5);
     double geom_decrease = 1/pow(temp, 1/STEPS);
 
 
-    printf("oper,accepted,obj,temp,time,");
+    printf("seed,oper,accepted,obj,temp,time\n");
     fflush(stdout);
 
     for (int i = 0; i < SEEDS; ++i) {
