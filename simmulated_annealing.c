@@ -58,16 +58,20 @@ double anneal_accept_prob(long long int old_obj, long long int new_obj, double t
 }
 
 void simulated_annealing(Problem *problem, Solution *sol, double init_temp, double temp_decrease, int max_iter,
-                         FILE *csv, const char* prefix, clock_t inittime, enum TempDecrease temp_decrease_type, bool use_oper_weights, bool verbose) {
+                         FILE *csv, const char* prefix, clock_t inittime, enum TempDecrease temp_decrease_type,
+                         bool use_oper_weights, int *oper_weights, bool verbose) {
 
     Solution best;
     Solution new;
     empty_solution(problem, &best);
     empty_solution(problem, &new);
 
-    int oper_weights[NUM_OPERATIONS];
+    int default_weights[NUM_OPERATIONS];
     for (int i = 0; i < NUM_OPERATIONS; ++i) {
-        oper_weights[i] = 100;
+        default_weights[i] = 100;
+    }
+    if (!oper_weights) {
+        oper_weights = default_weights;
     }
 
     double temp = init_temp;
