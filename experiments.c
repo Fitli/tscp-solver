@@ -192,7 +192,7 @@ void weight_for_change(const char *filename) {
     int weights[4] = {100, 700, 2100, 6300};
     for (int i = 0; i < SEEDS; ++i) {
         for (int j = 0; j < 4; ++j) {
-            int op_weights[8] = {0,0,0,weights[j],0,0,0,0};
+            int op_weights[8] = {100,100,100,weights[j],100,100,100,100};
             Solution sol;
             empty_solution(&problem, &sol);
             copy_solution(&problem, &init_sol, &sol);
