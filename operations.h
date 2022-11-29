@@ -51,7 +51,7 @@ void oper_change_train_capacity_dfs(Solution *sol, Problem *problem, int station
  * @param new_ts_amount
  * @return
  */
-int oper_change_train_capacity_dfs_with_edge(Solution *sol, Problem *problem, int edge_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount);
+int oper_change_train_capacity_dfs_with_edge(Solution *sol, Problem *problem, int edge_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount, double ps[4]);
 /**
  * Remove trainset from a trip beginning and ending in a station.
  * @param sol
@@ -86,7 +86,7 @@ int oper_remove_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id
  * @param weights for selectiong individual operations
  * @return
  */
-int select_operation(Problem *problem, Solution *sol, int *weights);
+int select_operation(Problem *problem, Solution *sol, int *weights, double ps[4]);
 
 
 #endif //TSCP_SOLVER_ACTIONS_H

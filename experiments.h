@@ -13,3 +13,4 @@ void hill_climb(const char *filename);
 void annealing_run(const char *filename);
 void tabu_run(const char *filename);
 void weight_for_change(const char *filename);
+void prob_grid_search(const char *filename);

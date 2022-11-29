@@ -16,8 +16,8 @@
 
 #define TO_DOT 1
 #define SEED 2
-//#define DATASET "../../small_data_2_ts.cfg"
-#define DATASET "../../big_data_2_ts.cfg"
+#define DATASET "../../small_data_2_ts.cfg"
+//#define DATASET "../../big_data_2_ts.cfg"
 //#define DATASET "../../data-cfg/real300_800.cfg"
 
 void read_solution_main() {
@@ -69,7 +69,7 @@ void tabu_search_main() {
     destroy_problem(&problem);
 }
 
-void constructive_main() {
+/*void constructive_main() {
     srand(SEED);
 
     Problem problem;
@@ -120,7 +120,7 @@ void annealing_main() {
     int big_iters = 0;
     do {
         old_obj = sol.objective;
-        simulated_annealing(&problem, &sol, 100000000, 1000, 1000000000, csv, "", inittime, LINEAR, true, NULL, true);
+        //simulated_annealing(&problem, &sol, 100000000, 1000, 1000000000, csv, "", inittime, LINEAR, true, NULL, true);
         big_iters++;
     } while(sol.objective < old_obj);
 
@@ -129,7 +129,7 @@ void annealing_main() {
     big_iters = 0;
     do {
         old_obj = sol.objective;
-        simulated_annealing(&problem, &sol, 1000000, 10, 1000000000, csv, "", inittime, LINEAR, true, NULL, true);
+        //simulated_annealing(&problem, &sol, 1000000, 10, 1000000000, csv, "", inittime, LINEAR, true, NULL, true);
         big_iters++;
     } while(sol.objective < old_obj);
 
@@ -166,7 +166,7 @@ int min_flow_main() {
 
     destroy_solution(&problem, &sol);
     destroy_problem(&problem);
-}
+}*/
 
 int main(int argc, char *argv[]) {
     //tabu_params(argv[1]);
@@ -175,6 +175,7 @@ int main(int argc, char *argv[]) {
     //hill_climb("../../big_data_2_ts.cfg");
     //annealing_run(argv[1]);
     //annealing_run(DATASET);
-    weight_for_change(argv[1]);
+    //weight_for_change(argv[1]);
+    prob_grid_search(argv[1]);
     return 0;
 }

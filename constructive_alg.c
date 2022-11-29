@@ -22,7 +22,7 @@ void remove_waiting(Problem *problem, Solution *sol) {
     }
 }
 
-void lower_edge(Solution *sol, Problem *problem, int edge_id) {
+/*void lower_edge(Solution *sol, Problem *problem, int edge_id) {
     EdgeSolution e_sol = sol->edge_solution[edge_id];
     int min_cap = problem->edges[edge_id].minimal_capacity;
     int num_ts = 0;
@@ -164,4 +164,4 @@ void constructive_alg(Solution *sol, Problem *problem, int num_iters) {
         }
         iter++;
     }
-}
+}*/

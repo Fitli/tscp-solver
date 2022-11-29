@@ -65,7 +65,7 @@ void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborho
             }
 
             copy_solution(problem, sol, new_sols + local_counter);
-            select_operation(problem, new_sols + local_counter, NULL);
+            //select_operation(problem, new_sols + local_counter, NULL);
 
             bool is_tabu = false;
             for (int i = 0; i < taboo_size; ++i) {

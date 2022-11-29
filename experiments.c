@@ -15,9 +15,9 @@
 #include "tabu_search.h"
 
 #define STEPS 2e6
-#define SEEDS 10
+#define SEEDS 5
 
-void annealing_parameters(const char *filename) {
+/*void annealing_parameters(const char *filename) {
     Problem problem;
     parse_problem(filename, &problem);
 
@@ -43,7 +43,7 @@ void annealing_parameters(const char *filename) {
             srand(seed);
             copy_solution(&problem, &init_sol, &sol);
             clock_t init_time = clock();
-            simulated_annealing(&problem, &sol, init_temp, lin_temp_decrease, STEPS, NULL, NULL, init_time, LINEAR, false, NULL, false);
+            //simulated_annealing(&problem, &sol, init_temp, lin_temp_decrease, STEPS, NULL, NULL, init_time, LINEAR, false, NULL, false);
             clock_t time = clock() - init_time;
             printf("%d,%f,lin,%f,%lld,%f\n", seed, init_temp, lin_temp_decrease, sol.objective, (double)(time)/(double)CLOCKS_PER_SEC);
         }
@@ -51,7 +51,7 @@ void annealing_parameters(const char *filename) {
             srand(seed);
             copy_solution(&problem, &init_sol, &sol);
             clock_t init_time = clock();
-            simulated_annealing(&problem, &sol, init_temp, geom_decrease, STEPS, NULL, NULL, init_time, GEOMETRIC, false, NULL, false);
+            //simulated_annealing(&problem, &sol, init_temp, geom_decrease, STEPS, NULL, NULL, init_time, GEOMETRIC, false, NULL, false);
             clock_t time = clock() - init_time;
             printf("%d,%f,geo,%f,%lld,%f\n", seed, init_temp, geom_decrease, sol.objective, (double)(time)/(double)CLOCKS_PER_SEC);
         }
@@ -75,7 +75,7 @@ void hill_climb(const char *filename) {
         srand(seed);
         copy_solution(&problem, &init_sol, &sol);
         clock_t init_time = clock();
-        simulated_annealing(&problem, &sol, 0.0, 0.0, STEPS, NULL, NULL, init_time, GEOMETRIC, false, NULL, false);
+        //simulated_annealing(&problem, &sol, 0.0, 0.0, STEPS, NULL, NULL, init_time, GEOMETRIC, false, NULL, false);
         clock_t time = clock() - init_time;
         printf("%d,%f,geo,%f,%lld,%f\n", seed, 0.0, 0.0, sol.objective, (double)(time)/(double)CLOCKS_PER_SEC);
     }
@@ -141,7 +141,7 @@ void annealing_run(const char *filename) {
         char sseed[5];
         sprintf(sseed, "%d,", i);
         clock_t init_time = clock();
-        simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, stdout, sseed, init_time, GEOMETRIC, false, NULL, false);
+        //simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, stdout, sseed, init_time, GEOMETRIC, false, NULL, false);
     }
 
 }
@@ -199,8 +199,54 @@ void weight_for_change(const char *filename) {
             char sseed[5];
             sprintf(sseed, "%d,", i);
             clock_t init_time = clock();
-            simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, stdout, sseed, init_time, GEOMETRIC, false, op_weights, false);
+            //simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, stdout, sseed, init_time, GEOMETRIC, false, op_weights, false);
         }
     }
 
+}*/
+
+void prob_grid_search(const char *filename) {
+    Problem problem;
+    parse_problem(filename, &problem);
+
+    Solution sol;
+    empty_solution(&problem, &sol);
+
+    Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
+
+    double p1s[3] = {0,0.01,0.10};
+    double p2s[3] = {0.90,0.99,1};
+    double p3s[3] = {0.5,0.7,0.9};
+    double p4s[3] = {0.3,0.5,0.7};
+
+    double ps[4] = {0.01, 0.99, 0.7, 0.4};
+    double temp = init_temp(&problem, &init_sol, 1000, 0.5, ps);
+    double geom_decrease = 1/pow(temp, 1/STEPS);
+    copy_solution(&problem, &init_sol, &sol);
+    //clock_t init_time = clock();
+    //simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, stdout, "", init_time, GEOMETRIC, false, NULL, false, ps);
+
+
+    printf("SEED,temp,type,decrease,obj,time,p1,p2,p3,p4\n");
+
+    for (int seed = 0; seed < SEEDS; ++seed) {
+        srand(seed);
+        for (int i = 0; i < 3; ++i) {
+            ps[0] = p1s[i];
+            for (int j = 0; j < 3; ++j) {
+                ps[1] = p2s[j];
+                for (int k = 0; k < 3; ++k) {
+                    ps[2] = p3s[k];
+                    for (int l = 0; l < 3; ++l) {
+                        ps[3] = p4s[l];
+                        copy_solution(&problem, &init_sol, &sol);
+                        clock_t init_time = clock();
+                        simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, NULL, NULL, init_time, GEOMETRIC, false, NULL, false, ps);
+                        clock_t time = clock() - init_time;
+                        printf("%d,%f,geo,%f,%lld,%f,%f,%f,%f,%f\n", seed, temp, geom_decrease, sol.objective, (double)(time)/(double)CLOCKS_PER_SEC,ps[0],ps[1],ps[2],ps[3]);
+                    }
+                }
+            }
+        }
+    }
 }
