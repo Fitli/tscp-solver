@@ -10,6 +10,7 @@
 #include "datatypes.h"
 #include "parse_input.h"
 #include "min_flow.h"
+#include "operations.h"
 #include "simmulated_annealing.h"
 #include "tabu_search.h"
 
@@ -118,13 +119,19 @@ void annealing_run(const char *filename) {
     Problem problem;
     parse_problem(filename, &problem);
 
-    Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
+    //Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
+    Solution init_sol;
+    empty_solution(&problem, &init_sol);
 
     double temp = init_temp(&problem, &init_sol, 1000, 0.5);
     double geom_decrease = 1/pow(temp, 1/STEPS);
 
 
-    printf("seed,accepted,obj,temp,time\n");
+    printf("seed,accepted,obj,temp,time");
+    for (int i = 0; i < NUM_OPERATIONS; ++i) {
+        printf(",oper%d", i);
+    }
+    printf("\n");
     fflush(stdout);
 
     for (int i = 0; i < SEEDS; ++i) {
@@ -134,7 +141,7 @@ void annealing_run(const char *filename) {
         char sseed[5];
         sprintf(sseed, "%d,", i);
         clock_t init_time = clock();
-        simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, stdout, sseed, init_time, GEOMETRIC, false, false);
+        simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, stdout, sseed, init_time, GEOMETRIC, true, false);
     }
 
 }

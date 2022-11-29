@@ -88,6 +88,7 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
                 update_weights(problem, oper_weights, -1);
             copy_solution(problem, &new, sol);
             last_accept_iter = iter;
+            test_consistency(problem, &new);
         }
         if(new.objective < best.objective) {
             copy_solution(problem, &new, &best);
@@ -95,6 +96,8 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         if(csv && iter%1000==0) {
             fprintf(csv, "%s%d,%lld,%f,%f", prefix,accepting, sol->objective,temp,
                     (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
+            for (int i = 0; i < NUM_OPERATIONS; ++i)
+                fprintf(csv, ",%d", oper_weights[i]);
             /*for (int i = 0; i < problem->num_trainset_types; ++i) {
                 fprintf(csv, "%d, ", sol->num_trainstes[i]);
             }*/

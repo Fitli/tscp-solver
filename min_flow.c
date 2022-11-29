@@ -39,7 +39,7 @@ void augment_feasible(int *from_source, int *to_sink, const int *capacities, int
     }
 }
 
-void find_feasible_path(Problem *problem, int n, int *from_source, int *to_sink, int *capacities, int *sol) {
+bool find_feasible_path(Problem *problem, int n, int *from_source, int *to_sink, int *capacities, int *sol) {
     Node *node = &problem->nodes[n];
     Edge *edges[problem->num_edges];
     int dirs[problem->num_edges];
@@ -59,6 +59,9 @@ void find_feasible_path(Problem *problem, int n, int *from_source, int *to_sink,
             node = node->station->source_node; // jump from sink to source
         }
         if(visited[node->id] == 4) {
+            if (buff_size == 0) {
+                return false;
+            }
             buff_size--;
             if (dirs[buff_size] == 1)
                 node = edges[buff_size]->start_node;
@@ -103,7 +106,7 @@ void find_feasible_path(Problem *problem, int n, int *from_source, int *to_sink,
     augment_feasible(from_source, to_sink, capacities, sol, n, node->id, edges, dirs, buff_size);
 }
 
-void find_feasible(Problem *problem, const int *low_bounds, const int *up_bounds, int *feasible) {
+bool find_feasible(Problem *problem, const int *low_bounds, const int *up_bounds, int *feasible) {
     int from_source[problem->num_nodes];
     int to_sink[problem->num_nodes];
     for (int i = 0; i < problem->num_nodes; ++i) {
@@ -131,12 +134,15 @@ void find_feasible(Problem *problem, const int *low_bounds, const int *up_bounds
 
     for (int i = 0; i < problem->num_nodes; ++i) {
         while (from_source[i] > 0)
-            find_feasible_path(problem, i, from_source, to_sink, capacities, feasible);
+            if (!find_feasible_path(problem, i, from_source, to_sink, capacities, feasible)) {
+                return false;
+            }
     }
 
     for (int i = 0; i < problem->num_edges; ++i) {
         feasible[i] += low_bounds[i];
     }
+    return true;
 }
 
 bool find_augmenting_from_to(Problem *problem, int *upper_bounds, int *max_flow, int *path, int *dirs, int *path_len, int start, int end) {
@@ -260,8 +266,8 @@ void find_max_flow(Problem *problem, int *upper_bounds, int *max_flow) {
 
 Solution min_flow(Problem *problem, Trainset *ts) {
     int up_bound = problem->max_cap / ts->seats;
-    if(up_bound > 2) {
-        up_bound = 2;
+    if(up_bound > problem->max_len) {
+        up_bound = problem->max_len;
     }
 
     int low_bounds[problem->num_edges];
@@ -279,7 +285,21 @@ Solution min_flow(Problem *problem, Trainset *ts) {
         feasible[i] = 0;
     }
 
-    find_feasible(problem, low_bounds, up_bounds, feasible);
+    bool has_feasible = find_feasible(problem, low_bounds, up_bounds, feasible);
+
+    if (!has_feasible && up_bound < problem->max_cap) { // relax max capacity constraint
+        for (int i = 0; i < problem->num_edges; ++i) {
+            if(problem->edges[i].type == SUBCONNECTION)
+                up_bounds[i] = problem->max_len;
+                feasible[i] = 0;
+        }
+        has_feasible = find_feasible(problem, low_bounds, up_bounds, feasible);
+    }
+    if (!has_feasible) {
+        Solution sol;
+        empty_solution(problem, &sol);
+        return sol;
+    }
 
     int upper_bounds[problem->num_edges];
     int max_flow[problem->num_edges];
