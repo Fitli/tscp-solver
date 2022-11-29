@@ -82,10 +82,12 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         op = select_operation(problem, &new, oper_weights);
         bool accepting = anneal_accept_prob(sol->objective, new.objective, temp) > (double) rand()/RAND_MAX;
         if(accepting){
-            if(new.objective < sol->objective)
-                update_weights(oper_weights, op);
-            else
-                update_weights(oper_weights, -1);
+            if (use_oper_weights) {
+                if(new.objective < sol->objective)
+                    update_weights(oper_weights, op);
+                else
+                    update_weights(oper_weights, -1);
+            }
             copy_solution(problem, &new, sol);
             last_accept_iter = iter;
         }
