@@ -328,6 +328,7 @@ int select_operation(Problem *problem, Solution *sol, int *weights) {
             }
             //oper_change_train_capacity_dfs(sol, problem, rand_st, ts1, ts2, 1, 1);
             oper_change_train_capacity_dfs_with_edge(sol, problem, rand_edge, ts1, ts2, 1, 1);
+            //oper_change_train_capacity_dfs_with_edge(sol, problem, rand_edge, 0, 1, 1, 1);
             break;
         case 4:
             operation_name = "change dfs 2:1";

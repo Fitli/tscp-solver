@@ -104,6 +104,7 @@ bool find_feasible_path(Problem *problem, int n, int *from_source, int *to_sink,
         }
     }
     augment_feasible(from_source, to_sink, capacities, sol, n, node->id, edges, dirs, buff_size);
+    return true;
 }
 
 bool find_feasible(Problem *problem, const int *low_bounds, const int *up_bounds, int *feasible) {

@@ -10,7 +10,7 @@
 #include "operations.h"
 #include "test.h"
 
-#define WEIGHT_DECREASE 0.99
+#define WEIGHT_DECREASE 0.999
 #define WEIGHT_UPDATE 100
 #define WEIGHT_MIN 100
 
@@ -32,7 +32,7 @@ double init_temp(Problem *problem, Solution *solution, int neigh_size, double av
     return -1 * increas_avg/log(avg_accept_prob);
 }
 
-void update_weights(Problem *problem, int *weights, int accepted_op) {
+void update_weights(int *weights, int accepted_op) {
     for (int i = 0; i < NUM_OPERATIONS; ++i) {
         weights[i] = (int) (weights[i] * WEIGHT_DECREASE);
         if(weights[i] < WEIGHT_MIN) {
@@ -82,13 +82,12 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         op = select_operation(problem, &new, oper_weights);
         bool accepting = anneal_accept_prob(sol->objective, new.objective, temp) > (double) rand()/RAND_MAX;
         if(accepting){
-            if(new.objective != sol->objective)
-                update_weights(problem, oper_weights, op);
+            if(new.objective < sol->objective)
+                update_weights(oper_weights, op);
             else
-                update_weights(problem, oper_weights, -1);
+                update_weights(oper_weights, -1);
             copy_solution(problem, &new, sol);
             last_accept_iter = iter;
-            test_consistency(problem, &new);
         }
         if(new.objective < best.objective) {
             copy_solution(problem, &new, &best);

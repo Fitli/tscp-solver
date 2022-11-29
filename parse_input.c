@@ -155,7 +155,7 @@ int create_edges(config_t *cfg, Problem *problem) {
     }
 
     // alocate space for edges
-    problem->edges = malloc(problem->num_edges * sizeof(Edge));
+    problem->edges = calloc(problem->num_edges, sizeof(Edge));
     if (problem->edges == NULL) {
         fprintf(stderr, "Allocation error.\n");
         return EXIT_FAILURE;
@@ -212,7 +212,7 @@ int create_nodes(config_t *cfg, Problem *problem) {
     problem->num_nodes = problem->num_inner_nodes + problem->num_stations * 2; // inner nodes + source + sink nodes
 
     // alocate space for nodes
-    problem->nodes = malloc(problem->num_nodes * sizeof(Node));
+    problem->nodes = calloc(problem->num_nodes, sizeof(Node));
     if (problem->nodes == NULL) {
         fprintf(stderr, "Allocation error.\n");
         return EXIT_FAILURE;
@@ -223,7 +223,7 @@ int create_nodes(config_t *cfg, Problem *problem) {
         problem->nodes[i].id = i;
     }
 
-    // input nodes
+    // in nodes
     int num_in = config_setting_length(in_nodes);
     for (int i = 0; i<num_in; i++) {
         config_setting_t *in_node = config_setting_get_elem(in_nodes, i);

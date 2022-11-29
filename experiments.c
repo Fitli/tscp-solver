@@ -119,9 +119,9 @@ void annealing_run(const char *filename) {
     Problem problem;
     parse_problem(filename, &problem);
 
-    //Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
-    Solution init_sol;
-    empty_solution(&problem, &init_sol);
+    Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
+    //Solution init_sol;
+    //empty_solution(&problem, &init_sol);
 
     double temp = init_temp(&problem, &init_sol, 1000, 0.5);
     double geom_decrease = 1/pow(temp, 1/STEPS);
