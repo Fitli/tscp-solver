@@ -12,3 +12,4 @@ void tabu_params(const char *filename);
 void hill_climb(const char *filename);
 void annealing_run(const char *filename);
 void tabu_run(const char *filename);
+void weight_for_change(const char *filename);

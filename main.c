@@ -173,7 +173,8 @@ int main(int argc, char *argv[]) {
     //annealing_parameters(argv[1]);
     //annealing_main();
     //hill_climb("../../big_data_2_ts.cfg");
-    annealing_run(argv[1]);
+    //annealing_run(argv[1]);
     //annealing_run(DATASET);
+    weight_for_change(argv[1]);
     return 0;
 }

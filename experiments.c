@@ -169,3 +169,38 @@ void tabu_run(const char *filename) {
     }
 
 }
+
+void weight_for_change(const char *filename) {
+    Problem problem;
+    parse_problem(filename, &problem);
+
+    Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
+    //Solution init_sol;
+    //empty_solution(&problem, &init_sol);
+
+    double temp = init_temp(&problem, &init_sol, 1000, 0.5);
+    double geom_decrease = 1/pow(temp, 1/STEPS);
+
+
+    printf("seed,accepted,obj,temp,time");
+    for (int i = 0; i < NUM_OPERATIONS; ++i) {
+        printf(",oper%d", i);
+    }
+    printf("\n");
+    fflush(stdout);
+
+    int weights[4] = {100, 700, 2100, 6300};
+    for (int i = 0; i < SEEDS; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            int op_weights[8] = {0,0,0,weights[j],0,0,0,0};
+            Solution sol;
+            empty_solution(&problem, &sol);
+            copy_solution(&problem, &init_sol, &sol);
+            char sseed[5];
+            sprintf(sseed, "%d,", i);
+            clock_t init_time = clock();
+            simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, stdout, sseed, init_time, GEOMETRIC, false, op_weights, false);
+        }
+    }
+
+}
