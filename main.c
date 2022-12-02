@@ -69,7 +69,7 @@ void tabu_search_main() {
     destroy_problem(&problem);
 }
 
-/*void constructive_main() {
+void constructive_main() {
     srand(SEED);
 
     Problem problem;
@@ -166,7 +166,7 @@ int min_flow_main() {
 
     destroy_solution(&problem, &sol);
     destroy_problem(&problem);
-}*/
+}
 
 int main(int argc, char *argv[]) {
     //tabu_params(argv[1]);
@@ -176,6 +176,8 @@ int main(int argc, char *argv[]) {
     //annealing_run(argv[1]);
     //annealing_run(DATASET);
     //weight_for_change(argv[1]);
-    prob_grid_search(argv[1]);
+    //prob_grid_search(DATASET);
+    //annealing_long_schedules(DATASET, 1);
+    annealing_long_schedules(argv[1], atoi(argv[2]));
     return 0;
 }

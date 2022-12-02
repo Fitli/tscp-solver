@@ -15,9 +15,9 @@
 #include "tabu_search.h"
 
 #define STEPS 2e6
-#define SEEDS 5
+#define SEEDS 2
 
-/*void annealing_parameters(const char *filename) {
+void annealing_parameters(const char *filename) {
     Problem problem;
     parse_problem(filename, &problem);
 
@@ -135,6 +135,7 @@ void annealing_run(const char *filename) {
     fflush(stdout);
 
     for (int i = 0; i < SEEDS; ++i) {
+        srand(i);
         Solution sol;
         empty_solution(&problem, &sol);
         copy_solution(&problem, &init_sol, &sol);
@@ -159,6 +160,7 @@ void tabu_run(const char *filename) {
     fflush(stdout);
 
     for (int i = 0; i < SEEDS; ++i) {
+        srand(i);
         Solution sol;
         empty_solution(&problem, &sol);
         copy_solution(&problem, &init_sol, &sol);
@@ -203,7 +205,7 @@ void weight_for_change(const char *filename) {
         }
     }
 
-}*/
+}
 
 void prob_grid_search(const char *filename) {
     Problem problem;
@@ -220,7 +222,7 @@ void prob_grid_search(const char *filename) {
     double p4s[3] = {0.3,0.5,0.7};
 
     double ps[4] = {0.01, 0.99, 0.7, 0.4};
-    double temp = init_temp(&problem, &init_sol, 1000, 0.5, ps);
+    double temp = init_temp(&problem, &init_sol, 1000, 0.5);
     double geom_decrease = 1/pow(temp, 1/STEPS);
     copy_solution(&problem, &init_sol, &sol);
     //clock_t init_time = clock();
@@ -241,7 +243,7 @@ void prob_grid_search(const char *filename) {
                         ps[3] = p4s[l];
                         copy_solution(&problem, &init_sol, &sol);
                         clock_t init_time = clock();
-                        simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, NULL, NULL, init_time, GEOMETRIC, false, NULL, false, ps);
+                        simulated_annealing(&problem, &sol, temp, geom_decrease, STEPS, NULL, NULL, init_time, GEOMETRIC, false, NULL, false);
                         clock_t time = clock() - init_time;
                         printf("%d,%f,geo,%f,%lld,%f,%f,%f,%f,%f\n", seed, temp, geom_decrease, sol.objective, (double)(time)/(double)CLOCKS_PER_SEC,ps[0],ps[1],ps[2],ps[3]);
                     }
@@ -249,4 +251,76 @@ void prob_grid_search(const char *filename) {
             }
         }
     }
+}
+
+void annealing_long_schedules_geom(Problem *problem, Solution *sol, double init_temp, int seed, int steps) {
+    srand(seed);
+
+    double geom_decrease = 1/pow(init_temp, 1.0/steps);
+
+    char prefix[100];
+    sprintf(prefix, "%d,geo,", seed);
+
+    clock_t init_time = clock();
+    simulated_annealing(problem, sol, init_temp, geom_decrease, steps, stdout, prefix, init_time, GEOMETRIC, false, NULL, false);
+}
+
+void annealing_long_schedules_quick_geom(Problem *problem, Solution *sol, double init_temp, int seed, int steps, int init_steps) {
+    srand(seed);
+
+    double geom_decrease = 1/pow(init_temp, 1.0/init_steps);
+
+    char prefix[100];
+    sprintf(prefix, "%d,quick_geo%dM,", seed, init_steps/(int)1e6);
+
+    clock_t init_time = clock();
+    simulated_annealing(problem, sol, init_temp, geom_decrease, init_steps, stdout, prefix, init_time, GEOMETRIC, false, NULL, false);
+    simulated_annealing(problem, sol, 1, 1, steps-init_steps, stdout, prefix, init_time, GEOMETRIC, false, NULL, false);
+}
+
+void annealing_long_schedules_iter_geom(Problem *problem, Solution *sol, double init_temp, int seed, int steps, int iter_steps) {
+    srand(seed);
+
+    char prefix[100];
+    sprintf(prefix, "%d,iter_geo%dM,", seed, iter_steps/(int)1e6);
+
+    clock_t init_time = clock();
+
+    for (int i = 0; i < steps / iter_steps; ++i) {
+        double geom_decrease = 1/pow(init_temp, 1.0/iter_steps);
+        simulated_annealing(problem, sol, init_temp, geom_decrease, iter_steps, stdout, prefix, init_time, GEOMETRIC, false, NULL, false);
+        init_temp/=2;
+    }
+}
+
+void annealing_long_schedules(const char *filename, int init_seed) {
+    Problem problem;
+    parse_problem(filename, &problem);
+
+    Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
+
+    double temp = init_temp(&problem, &init_sol, 1000, 0.5);
+    double geom_decrease = 1/pow(temp, 1/STEPS);
+
+    for (int i = init_seed; i < init_seed+SEEDS; ++i) {
+        Solution sol;
+        empty_solution(&problem, &sol);
+        copy_solution(&problem, &init_sol, &sol);
+        annealing_long_schedules_geom(&problem, &sol, temp, i, 16e6);
+        copy_solution(&problem, &init_sol, &sol);
+        annealing_long_schedules_quick_geom(&problem, &sol, temp, i, 16e6, 1e6);
+        copy_solution(&problem, &init_sol, &sol);
+        annealing_long_schedules_quick_geom(&problem, &sol, temp, i, 16e6, 2e6);
+        copy_solution(&problem, &init_sol, &sol);
+        annealing_long_schedules_quick_geom(&problem, &sol, temp, i, 16e6, 8e6);
+        copy_solution(&problem, &init_sol, &sol);
+        annealing_long_schedules_iter_geom(&problem, &sol, temp, i, 16e6, 1e6);
+        copy_solution(&problem, &init_sol, &sol);
+        annealing_long_schedules_iter_geom(&problem, &sol, temp, i, 16e6, 2e6);
+        destroy_solution(&problem, &sol);
+    }
+
+    destroy_solution(&problem, &init_sol);
+    destroy_problem(&problem);
+
 }

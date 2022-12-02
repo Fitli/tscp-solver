@@ -14,7 +14,7 @@
 #define WEIGHT_UPDATE 100
 #define WEIGHT_MIN 100
 
-double init_temp(Problem *problem, Solution *solution, int neigh_size, double avg_accept_prob, double ps[4]) {
+double init_temp(Problem *problem, Solution *solution, int neigh_size, double avg_accept_prob) {
     int increas_num = 0;
     long long increas_sum = 0;
     Solution modified_sol;
@@ -22,7 +22,7 @@ double init_temp(Problem *problem, Solution *solution, int neigh_size, double av
     copy_solution(problem, solution, &modified_sol);
     for (int i = 0; i < neigh_size; ++i) {
         long long old_obj = modified_sol.objective;
-        select_operation(problem, &modified_sol, NULL, ps);
+        select_operation(problem, &modified_sol, NULL);
         if(modified_sol.objective > old_obj && modified_sol.objective - old_obj < (long long) 1e12) {
             increas_num++;
             increas_sum += modified_sol.objective - old_obj;
@@ -59,7 +59,7 @@ double anneal_accept_prob(long long int old_obj, long long int new_obj, double t
 
 void simulated_annealing(Problem *problem, Solution *sol, double init_temp, double temp_decrease, int max_iter,
                          FILE *csv, const char* prefix, clock_t inittime, enum TempDecrease temp_decrease_type,
-                         bool use_oper_weights, int *oper_weights, bool verbose, double ps[4]) {
+                         bool use_oper_weights, int *oper_weights, bool verbose) {
 
     Solution best;
     Solution new;
@@ -83,7 +83,7 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         fflush(stdout);
         copy_solution(problem, sol, &new);
         int op;
-        op = select_operation(problem, &new, oper_weights, ps);
+        op = select_operation(problem, &new, oper_weights);
         bool accepting = anneal_accept_prob(sol->objective, new.objective, temp) > (double) rand()/RAND_MAX;
         if(accepting){
             if (use_oper_weights) {
@@ -98,7 +98,7 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         if(new.objective < best.objective) {
             copy_solution(problem, &new, &best);
         }
-        if(csv && iter%1000==0) {
+        if(csv && iter%20000==0) {
             fprintf(csv, "%s%d,%lld,%f,%f", prefix,accepting, sol->objective,temp,
                     (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
             for (int i = 0; i < NUM_OPERATIONS; ++i)
