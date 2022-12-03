@@ -331,7 +331,7 @@ void final_run(const char *filename) {
     Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
 
     double temp = init_temp(&problem, &init_sol, 1000, 0.5);
-    printf("seed,schedule,acc,cost,temp,time,o0,o1,o2,o3,o4,o5,o6,o7");
+    printf("seed,schedule,acc,cost,temp,time,o0,o1,o2,o3,o4,o5,o6,o7\n");
 
     for (int i = 0; i < SEEDS; ++i) {
         srand(i);
