@@ -99,10 +99,10 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
             copy_solution(problem, &new, &best);
         }
         if(csv && iter%20000==0) {
-            fprintf(csv, "%s%d,%lld,%f,%f", prefix,accepting, sol->objective,temp,
-                    (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
-            for (int i = 0; i < NUM_OPERATIONS; ++i)
-                fprintf(csv, ",%d", oper_weights[i]);
+            fprintf(csv, "%s,%lld,%f,%f,%d,%d", prefix, sol->objective,temp,
+                    (double)(clock()-inittime)/(double)CLOCKS_PER_SEC, sol->num_trainstes[0], sol->num_trainstes[1]);
+            /*for (int i = 0; i < NUM_OPERATIONS; ++i)
+                fprintf(csv, ",%d", oper_weights[i]);*/
             /*for (int i = 0; i < problem->num_trainset_types; ++i) {
                 fprintf(csv, "%d, ", sol->num_trainstes[i]);
             }*/
