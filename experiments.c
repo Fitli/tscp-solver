@@ -15,7 +15,7 @@
 #include "tabu_search.h"
 
 #define STEPS 2e6
-#define SEEDS 2
+#define SEEDS 10
 
 void annealing_parameters(const char *filename) {
     Problem problem;
