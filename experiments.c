@@ -300,7 +300,6 @@ void annealing_long_schedules(const char *filename, int init_seed) {
     Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
 
     double temp = init_temp(&problem, &init_sol, 1000, 0.5);
-    double geom_decrease = 1/pow(temp, 1/STEPS);
 
     for (int i = init_seed; i < init_seed+SEEDS; ++i) {
         Solution sol;
@@ -318,6 +317,28 @@ void annealing_long_schedules(const char *filename, int init_seed) {
         copy_solution(&problem, &init_sol, &sol);
         annealing_long_schedules_iter_geom(&problem, &sol, temp, i, 16e6, 2e6);
         destroy_solution(&problem, &sol);
+    }
+
+    destroy_solution(&problem, &init_sol);
+    destroy_problem(&problem);
+
+}
+
+void final_run(const char *filename) {
+    Problem problem;
+    parse_problem(filename, &problem);
+
+    Solution init_sol = min_flow(&problem, &problem.trainset_types[1]);
+
+    double temp = init_temp(&problem, &init_sol, 1000, 0.5);
+    printf("seed,schedule,acc,cost,temp,time,o0,o1,o2,o3,o4,o5,o6,o7");
+
+    for (int i = 0; i < SEEDS; ++i) {
+        srand(i);
+        Solution sol;
+        empty_solution(&problem, &sol);
+        copy_solution(&problem, &init_sol, &sol);
+        annealing_long_schedules_geom(&problem, &sol, temp, i, 16e6);
     }
 
     destroy_solution(&problem, &init_sol);

@@ -178,6 +178,7 @@ int main(int argc, char *argv[]) {
     //weight_for_change(argv[1]);
     //prob_grid_search(DATASET);
     //annealing_long_schedules(DATASET, 1);
-    annealing_long_schedules(argv[1], atoi(argv[2]));
+    //annealing_long_schedules(argv[1], atoi(argv[2]));
+    final_run(argv[1]);
     return 0;
 }
