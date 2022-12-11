@@ -405,11 +405,15 @@ Solution read_sol_from_csv(Problem *problem, char *filename) {
     empty_solution(problem, &sol);
 
     for (int i = 0; i < problem->num_edges; ++i) {
+        int num_load = 0;
         for (int j = 0; j < problem->num_trainset_types-1; ++j) {
-            fscanf(f, "%d,", &sol.edge_solution[i].num_trainsets[j]);
+            num_load += fscanf(f, "%d,", &sol.edge_solution[i].num_trainsets[j]);
         }
-        fscanf(f, "%d\n", &sol.edge_solution[i].num_trainsets[problem->num_trainset_types-1]);
+        num_load = fscanf(f, "%d\n", &sol.edge_solution[i].num_trainsets[problem->num_trainset_types-1]);
 
+        if(num_load < problem->num_trainset_types) {
+            fprintf(stderr, "ERROR: Bad csv input format.\n");
+        }
         for (int j = 0; j < problem->num_trainset_types; ++j) {
             sol.edge_solution[i].capacity += sol.edge_solution[i].num_trainsets[j] * problem->trainset_types[j].seats;
         }
