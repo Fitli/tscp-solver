@@ -10,6 +10,6 @@ else()
     set(libname "config")
 endif()
 
-add_executable(tscp_solver main.c datatypes.h dot_printer.c dot_printer.h parse_input.c parse_input.h datatypes.c solution_modifier.c solution_modifier.h objective.c objective.h edge_heuristics.c edge_heuristics.h change_finder.c change_finder.h test.c test.h operations.c operations.h random.c random.h output.c output.h tabu_search.c tabu_search.h simmulated_annealing.c simmulated_annealing.h min_flow.c min_flow.h)
+add_executable(tscp_solver src/main.c src/datatypes.h src/dot_printer.c src/dot_printer.h src/parse_input.c src/parse_input.h src/datatypes.c src/solution_modifier.c src/solution_modifier.h src/objective.c src/objective.h src/edge_heuristics.c src/edge_heuristics.h src/change_finder.c src/change_finder.h src/test.c src/test.h src/operations.c src/operations.h src/random.c src/random.h src/output.c src/output.h src/tabu_search.c src/tabu_search.h src/simmulated_annealing.c src/simmulated_annealing.h src/min_flow.c src/min_flow.h)
 
 target_link_libraries(tscp_solver ${libname} m)
