@@ -102,9 +102,11 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             arguments->problem_spec_file = arg;
             break;
         case ARGP_KEY_END:
-            if (state->arg_num != 1)
+            printf("%u\n", state->arg_num);
+            if (state->arg_num != 1) {
                 printf("Wrong number of arguments.\n");
-                argp_usage (state);
+                argp_usage(state);
+            }
             break;
     }
     return 0;
