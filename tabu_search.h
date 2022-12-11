@@ -7,7 +7,7 @@
 
 #include "datatypes.h"
 
-void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int stop_no_improve, int max_iters, clock_t inittime, FILE *csv_objective, FILE *csv_operations);
+void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int max_iters, clock_t inittime, bool verbose);
 /**
  * Remove rmandomly part of the trainsets
  * @param problem

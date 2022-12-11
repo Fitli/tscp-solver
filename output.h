@@ -14,4 +14,6 @@
  */
 void analyze_solution(Solution *sol, Problem *problem);
 
+void sol_to_csv(Solution *sol, Problem *problem, const char* filename);
+
 #endif //TSCP_SOLVER_OUTPUT_H

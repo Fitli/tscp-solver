@@ -7,7 +7,7 @@
 #include "test.h"
 
 void print_objective(Solution *sol) {
-    printf("objective: %lld\n", sol->objective);;
+    printf("best cost: %lld\n", sol->objective);;
 }
 
 void print_used_trainsets(Solution *sol, Problem *problem) {
@@ -46,4 +46,16 @@ void analyze_solution(Solution *sol, Problem *problem) {
     print_objective(sol);
     print_used_trainsets(sol, problem);
     print_soft_constraints(sol, problem);
+}
+
+void sol_to_csv(Solution *sol, Problem *problem, const char* filename) {
+    FILE *csv = fopen(filename, "w");
+    for(int i = 0; i < problem->num_edges; i++) {
+        fprintf(csv, "%d", sol->edge_solution[i].num_trainsets[0]);
+        for (int j = 1; j < problem->num_trainset_types; ++j) {
+            fprintf(csv, ",%d", sol->edge_solution[i].num_trainsets[j]);
+        }
+        fprintf(csv, "\n");
+    }
+    fclose(csv);
 }

@@ -12,7 +12,7 @@
 #include "tabu_search.h"
 #include "constructive_alg.h"
 #include "min_flow.h"
-#include "experiments.h"
+//#include "experiments.h"
 
 #define TO_DOT 1
 #define SEED 2
@@ -36,7 +36,7 @@ void read_solution_main() {
     destroy_problem(&problem);
 }
 
-void tabu_search_main() {
+/*void tabu_search_main() {
     srand(SEED);
 
 
@@ -67,88 +67,7 @@ void tabu_search_main() {
 
     destroy_solution(&problem, &sol);
     destroy_problem(&problem);
-}
-
-void constructive_main() {
-    srand(SEED);
-
-    Problem problem;
-    parse_problem(DATASET, &problem);
-
-    Solution sol;
-    empty_solution(&problem, &sol);
-
-    constructive_alg(&sol, &problem, 10000000);
-
-    analyze_solution(&sol, &problem);
-
-    if(TO_DOT) {
-        print_problem(&problem, &sol, "final.dot", "final solution");
-    }
-
-    destroy_solution(&problem, &sol);
-    destroy_problem(&problem);
-}
-
-void annealing_main() {
-    srand(SEED);
-
-
-    Problem problem;
-    parse_problem(DATASET, &problem);
-
-    FILE *csv = fopen("annealing_big2.csv", "w");
-    fprintf(csv, "oper,accepted,obj,temp,time,");
-    for (int i = 0; i < problem.num_trainset_types; ++i) {
-        fprintf(csv, "trainset_%d, ", i);
-    }
-    fprintf(csv, "\n");
-
-    clock_t inittime = clock();
-
-    Solution sol;
-    empty_solution(&problem, &sol);
-
-    sol = min_flow(&problem, &problem.trainset_types[1]);
-
-    //simulated_annealing(&problem, &sol, 100000000000000, 10000, 10000, csv, inittime);
-    double temp = init_temp(&problem, &sol, 1000, 0.5);
-    //double temp = 700000000;
-    //simulated_annealing(&problem, &sol, 700000000, 1000, 1000000000, csv, inittime, LINEAR, true);
-    simulated_annealing(&problem, &sol, temp, 0.99998, 1e6, NULL, NULL, inittime, GEOMETRIC, true, NULL, true);
-    long long int old_obj;
-    int big_iters = 0;
-    do {
-        old_obj = sol.objective;
-        //simulated_annealing(&problem, &sol, 100000000, 1000, 1000000000, csv, "", inittime, LINEAR, true, NULL, true);
-        big_iters++;
-    } while(sol.objective < old_obj);
-
-    printf("iters: %d\n", big_iters);
-
-    big_iters = 0;
-    do {
-        old_obj = sol.objective;
-        //simulated_annealing(&problem, &sol, 1000000, 10, 1000000000, csv, "", inittime, LINEAR, true, NULL, true);
-        big_iters++;
-    } while(sol.objective < old_obj);
-
-    printf("iters: %d\n", big_iters);
-    printf("time: %f s\n", (double)(clock()-inittime)/(double)CLOCKS_PER_SEC);
-
-    analyze_solution(&sol, &problem);
-
-    fclose(csv);
-
-    if(TO_DOT) {
-        print_problem(&problem, &sol, "final.dot", "final solution");
-    }
-
-    destroy_solution(&problem, &sol);
-    destroy_problem(&problem);
-}
-
-
+}*/
 
 int min_flow_main() {
     srand(SEED);
@@ -168,6 +87,61 @@ int min_flow_main() {
     destroy_problem(&problem);
 }
 
+Solution get_init_sol(Problem *problem, bool empty, char *init_sol_csv) {
+    if (empty) {
+        Solution sol;
+        empty_solution(problem, &sol);
+        return sol;
+    }
+    if (init_sol_csv) {
+        return read_sol_from_csv(problem, init_sol_csv);
+    }
+    return min_flow(problem, &problem->trainset_types[1]);
+}
+
+void tabu_run(const char *filename, int steps, int tabu_len, int neigh_size, bool verbose, bool empty_init, char *init_sol_csv, char *output_csv) {
+    Problem problem;
+    parse_problem(filename, &problem);
+
+    Solution sol = get_init_sol(&problem, empty_init, init_sol_csv);
+
+    clock_t init_time = clock();
+    tabu_search(&problem, &sol, tabu_len, neigh_size, steps/neigh_size, init_time, verbose);
+
+    analyze_solution(&sol, &problem);
+    printf("running time: %f s\n", (double)(clock()-init_time)/(double)CLOCKS_PER_SEC);
+
+    if(output_csv) {
+        sol_to_csv(&sol, &problem, output_csv);
+    }
+
+    destroy_solution(&problem, &sol);
+    destroy_problem(&problem);
+}
+
+void annealing_run(const char *filename, int steps, bool verbose, bool empty_init, char *init_sol_csv, char *output_csv) {
+    Problem problem;
+    parse_problem(filename, &problem);
+
+    Solution sol = get_init_sol(&problem, empty_init, init_sol_csv);
+
+    double temp = init_temp(&problem, &sol, 1000, 0.5);
+    double geom_decrease = 1/pow(temp, 1.0/steps);
+
+    clock_t init_time = clock();
+    simulated_annealing(&problem, &sol, temp, geom_decrease, steps, init_time, GEOMETRIC, verbose);
+
+    analyze_solution(&sol, &problem);
+    printf("running time: %f s\n", (double)(clock()-init_time)/(double)CLOCKS_PER_SEC);
+
+    if(output_csv) {
+        sol_to_csv(&sol, &problem, output_csv);
+    }
+
+    destroy_solution(&problem, &sol);
+    destroy_problem(&problem);
+}
+
 int main(int argc, char *argv[]) {
     //tabu_params(argv[1]);
     //annealing_parameters(argv[1]);
@@ -179,6 +153,9 @@ int main(int argc, char *argv[]) {
     //prob_grid_search(DATASET);
     //annealing_long_schedules(DATASET, 1);
     //annealing_long_schedules(argv[1], atoi(argv[2]));
-    final_run(argv[1]);
+    //final_run(argv[1]);
+    srand(time(0));
+    annealing_run(DATASET, 2000000, true, false, "res.csv", NULL);
+    tabu_run(DATASET, 1000000, 5, 200, true, false, NULL, NULL);
     return 0;
 }

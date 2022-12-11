@@ -16,5 +16,4 @@ enum TempDecrease {
 
 double init_temp(Problem *problem, Solution *solution, int neigh_size, double avg_accept_prob);
 void simulated_annealing(Problem *problem, Solution *sol, double init_temp, double temp_decrease, int max_iter,
-                         FILE *csv, const char* prefix, clock_t inittime, enum TempDecrease temp_decrease_type,
-                         bool use_oper_weights, int *oper_weights, bool verbose);
+                         clock_t inittime, enum TempDecrease temp_decrease_type, bool verbose);
