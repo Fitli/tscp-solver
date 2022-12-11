@@ -11,10 +11,10 @@
 void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int max_iters, clock_t inittime, bool verbose) {
 
     int iteration = 0;
-    long long int taboo[taboo_size];
-    taboo[0] = sol->objective;
+    long long int tabu[taboo_size];
+    tabu[0] = sol->objective;
     for (int i = 1; i < taboo_size; ++i) {
-        taboo[i] = 0;
+        tabu[i] = 0;
     }
     int tabu_pos = 1;
     Solution new_sols [neighborhood_size];
@@ -43,7 +43,7 @@ void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborho
 
             bool is_tabu = false;
             for (int i = 0; i < taboo_size; ++i) {
-                if(new_sols[local_counter].objective == taboo[i]) {
+                if(new_sols[local_counter].objective == tabu[i]) {
                     is_tabu = true;
                     break;
                 }
@@ -62,7 +62,7 @@ void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborho
         }
 
         copy_solution(problem, selected_solution, sol);
-        taboo[tabu_pos] = sol->objective;
+        tabu[tabu_pos] = sol->objective;
         tabu_pos = (tabu_pos + 1) % taboo_size;
         if(sol->objective < overall_best.objective) {
             copy_solution(problem, sol, &overall_best);

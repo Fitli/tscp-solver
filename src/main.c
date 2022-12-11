@@ -8,7 +8,7 @@
 #include "test.h"
 #include "operations.h"
 #include "output.h"
-#include "simmulated_annealing.h"
+#include "simulated_annealing.h"
 #include "tabu_search.h"
 #include "min_flow.h"
 
