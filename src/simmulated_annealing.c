@@ -78,7 +78,7 @@ void simulated_annealing(Problem *problem, Solution *sol, double init_temp, doub
         printf("iter\tcost\ttime\ttemperature\n------------------------\n");
     }
     while (iter - last_accept_iter < 100000 && iter < max_iter) {
-        if(iter % 10000 == 0 && verbose)
+        if(iter % 20000 == 0 && verbose)
             printf("%d\t%lld\t%f\t%f\n", iter, sol->objective,
                    (double)(clock()-inittime)/(double)CLOCKS_PER_SEC, temp);
         fflush(stdout);
