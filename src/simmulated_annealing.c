@@ -29,6 +29,7 @@ double init_temp(Problem *problem, Solution *solution, int neigh_size, double av
         }
     }
     double increas_avg = (double) increas_sum/increas_num;
+    destroy_solution(problem, &modified_sol);
     return -1 * increas_avg/log(avg_accept_prob);
 }
 

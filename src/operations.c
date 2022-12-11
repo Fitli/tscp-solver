@@ -172,6 +172,8 @@ void oper_reschedule(Solution *sol, Problem *problem, int start_node_id, int tri
 
     change_trip_capacity(sol, problem, start_node_id, end_node->id, ts_id, ts_id, 0, 1, 0);
 
+    free(edges);
+
 }
 
 void oper_reschedule_from_to(Solution *sol, Problem *problem, int start_node_id, int end_node_id, int ts_id) {
