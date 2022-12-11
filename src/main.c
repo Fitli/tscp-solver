@@ -76,7 +76,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 's':
             if (!is_number(arg)) {
-                printf("Number of steps must be a positive integer\n");
+                printf("Number of steps must be a positive integer.\n");
                 argp_usage(state);
                 break;
             }
@@ -84,7 +84,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'n':
             if (!is_number(arg)) {
-                printf("Neighborhood size must be a positive integer\n");
+                printf("Neighborhood size must be a positive integer.\n");
                 argp_usage(state);
                 break;
             }
@@ -92,7 +92,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case 'u':
             if (!is_number(arg)) {
-                printf("Tabu length must be a positive integer or 0\n");
+                printf("Tabu length must be a positive integer or 0.\n");
                 argp_usage(state);
                 break;
             }
@@ -100,6 +100,11 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
         case ARGP_KEY_ARG:
             arguments->problem_spec_file = arg;
+            break;
+        case ARGP_KEY_END:
+            if (state->arg_num != 1)
+                printf("Wrong number of arguments.\n");
+                argp_usage (state);
             break;
     }
     return 0;
