@@ -1,5 +1,5 @@
 //
-// Created by fitli on 03.11.22.
+// Created by Ivana Krumlová on 03.11.22.
 //
 
 #include "datatypes.h"

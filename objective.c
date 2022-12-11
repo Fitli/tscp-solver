@@ -1,5 +1,5 @@
 //
-// Created by fitli on 03.04.22.
+// Created by Ivana Krumlová on 03.04.22.
 //
 
 #include "objective.h"

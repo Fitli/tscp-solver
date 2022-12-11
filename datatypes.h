@@ -1,5 +1,5 @@
 //
-// Created by fitli on 02.01.22.
+// Created by Ivana Krumlová on 02.01.22.
 //
 
 #ifndef TSCP_SOLVER_C_DATATYPES_H

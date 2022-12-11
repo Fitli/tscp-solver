@@ -1,5 +1,5 @@
 //
-// Created by fitli on 19.03.22.
+// Created by Ivana Krumlová on 19.03.22.
 //
 
 #ifndef TSCP_SOLVER_C_SOLUTION_MODIFIER_H

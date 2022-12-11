@@ -1,5 +1,5 @@
 //
-// Created by fitli on 22.09.22.
+// Created by Ivana Krumlová on 22.09.22.
 //
 
 #ifndef TSCP_SOLVER_RANDOM_H

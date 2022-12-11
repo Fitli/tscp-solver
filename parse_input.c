@@ -1,5 +1,5 @@
 //
-// Created by fitli on 10.03.22.
+// Created by Ivana Krumlová on 10.03.22.
 //
 
 #include "parse_input.h"

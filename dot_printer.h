@@ -1,5 +1,5 @@
 //
-// Created by fitli on 25.02.22.
+// Created by Ivana Krumlová on 25.02.22.
 //
 
 #ifndef TSCP_SOLVER_C_DOT_PRINTER_H

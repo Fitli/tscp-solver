@@ -1,5 +1,5 @@
 //
-// Created by fitli on 06.04.22.
+// Created by Ivana Krumlová on 06.04.22.
 //
 
 #ifndef TSCP_SOLVER_EDGE_HEURISTICS_H
