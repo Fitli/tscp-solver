@@ -3,40 +3,10 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include "tabu_search.h"
 #include "operations.h"
 
-/**
- * sorting solutions by increasing objective
- * @param a pointer to a solution
- * @param b pointer to a solution
- * @return
- */
-int cmpfunc (const void * a, const void * b) {
-    if (((Solution *) a)->objective > ((Solution *) b)->objective) {
-        return 1;
-    }
-    else {
-        return -1;
-    }
-}
-
-void perturbate(Problem *problem, Solution *solution, double remove_rate) {
-    int overall_num_ts = 0;
-    for (int i = 0; i < problem->num_trainset_types; ++i) {
-        overall_num_ts += solution->num_trainstes[i];
-    }
-
-    int to_remove = (int) (overall_num_ts * remove_rate);
-    int removed = 0;
-    while(removed < to_remove) {
-        int rand_st_id = rand() % problem->num_stations;
-        int rand_ts_id = rand() % problem->num_trainset_types;
-        removed += oper_remove_train_dfs(solution, problem, rand_st_id, rand_ts_id);
-    }
-}
 
 void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int max_iters, clock_t inittime, bool verbose) {
 

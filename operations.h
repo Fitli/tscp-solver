@@ -9,7 +9,6 @@
 #define TSCP_SOLVER_ACTIONS_H
 
 #define NUM_OPERATIONS 8
-//#define NUM_OPERATIONS (2 * 2 * 2 * 3 * 3)
 
 /**
  * Add trainset beginning and ending in a station.
@@ -51,7 +50,7 @@ void oper_change_train_capacity_dfs(Solution *sol, Problem *problem, int station
  * @param new_ts_amount
  * @return
  */
-int oper_change_train_capacity_dfs_with_edge(Solution *sol, Problem *problem, int edge_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount);
+int oper_change_train_capacity(Solution *sol, Problem *problem, int edge_id, int old_ts_id, int new_ts_id, int old_ts_amount, int new_ts_amount);
 /**
  * Remove trainset from a trip beginning and ending in a station.
  * @param sol
@@ -87,6 +86,5 @@ int oper_remove_train_with_edge_dfs(Solution *sol, Problem *problem, int edge_id
  * @return
  */
 int select_operation(Problem *problem, Solution *sol, int *weights);
-
 
 #endif //TSCP_SOLVER_ACTIONS_H

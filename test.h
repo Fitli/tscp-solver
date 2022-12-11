@@ -6,7 +6,6 @@
 
 #ifndef TSCP_SOLVER_TEST_H
 #define TSCP_SOLVER_TEST_H
-
 /**
  * Tests if the flow and ballance in the network are valid
  * @param problem

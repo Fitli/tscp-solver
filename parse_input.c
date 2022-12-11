@@ -283,7 +283,6 @@ int create_nodes(config_t *cfg, Problem *problem) {
 
         idx++;
     }
-    //TODO: přidat časy?
 
     return EXIT_SUCCESS;
 }
@@ -340,7 +339,6 @@ int create_stations(config_t *cfg, Problem *problem) {
     for(int i = 0; i < problem->num_stations; i++) {
         problem->stations[i].id = i;
     }
-    //TODO: přidat názvy stanic??
     return EXIT_SUCCESS;
 }
 

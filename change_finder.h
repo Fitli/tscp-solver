@@ -6,7 +6,7 @@
 #define TSCP_SOLVER_CHANGE_FINDER_H
 
 #include "datatypes.h"
-#include "heuristics.h"
+#include "edge_heuristics.h"
 
 /**
  * Finds a sequence of edges connecting `start_node` and `end_node`. Uses DFS with random order of searching branches

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "change_finder.h"
-#include "heuristics.h"
+#include "edge_heuristics.h"
 
 /**
  * Randomly determines if the subconnection branch should be explored before the waiting branch in the DFS.

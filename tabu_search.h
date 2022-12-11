@@ -8,12 +8,5 @@
 #include "datatypes.h"
 
 void tabu_search(Problem *problem, Solution *sol, int taboo_size, int neighborhood_size, int max_iters, clock_t inittime, bool verbose);
-/**
- * Remove rmandomly part of the trainsets
- * @param problem
- * @param solution
- * @param remove_rate form interval [0, 1] - portion of trainsets to remove
- */
-void perturbate(Problem *problem, Solution *solution, double remove_rate);
 
 #endif //TSCP_SOLVER_TABU_SEARCH_H

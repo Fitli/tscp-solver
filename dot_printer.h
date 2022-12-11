@@ -4,6 +4,7 @@
 
 #ifndef TSCP_SOLVER_C_DOT_PRINTER_H
 #define TSCP_SOLVER_C_DOT_PRINTER_H
+
 #include "datatypes.h"
 
 /**
