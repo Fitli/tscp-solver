@@ -27,7 +27,10 @@ struct Arguments {
     char *out_file;
 };
 
-static char doc[] = "Solver for trainset capacity problem";
+static char doc[] = "Solver for trainset capacity problem\n"
+                    "Default run without options specified runs the simulated annealing algorithm "
+                    "for 2 million steps with a feasible solution using only the second trainset "
+                    "as the initial solution.";
 
 static char args_doc[] = "PROBLEM_FILE";
 
@@ -37,7 +40,7 @@ static struct argp_option options[] = {
         {"tabu",        't', 0,      0,  "Use tabu search (default is simulated annealing)", 5  },
         {"init_file",   'i', "FILE", 0,  "Load the initial solution from csv file", 3 },
         {"output_sol",  'o', "FILE", 0,  "Write the solution to file as csv", 4 },
-        {"steps",       's', "N",    0,  "Number of steps of the algorithm", 2 },
+        {"steps",       's', "N",    0,  "Number of steps (default is 2 million)", 2 },
         {"neigh",       'n', "N",    0,  "Number of generated neighbors for tabu search", 6 },
         {"tabu_len",    'u', "N",    0,  "Tabu list length", 6 },
         { 0 }
@@ -101,7 +104,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
         case ARGP_KEY_ARG:
             arguments->problem_spec_file = arg;
             break;
-        case ARGP_KEY_END::
+        case ARGP_KEY_END:
             if (state->arg_num != 1) {
                 printf("Wrong number of arguments.\n");
                 argp_usage(state);

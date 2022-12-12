@@ -10,15 +10,17 @@ mkdir build && cd build
 cmake ..
 make
 ```
-Te resulting binary will be in `tscp_solver` file.
+The resulting binary will be in `tscp_solver` file.
 
 ## Running
 Solver is run as:
 `./tscp_solver [OPTION...] PROBLEM_FILE`
 
+Default run without options runs the simulated annealing algorithm for 2 million steps with a feasible solution using only the second trainset as the initial solution.
+
 ### Options
 - `-v`,   `--verbose`              Produce verbose output
-- `-s`, `--steps=N`              Number of steps of the algorithm
+- `-s`, `--steps=N`                Number of steps of the algorithm (default is 2 million)
 - `-e`,   `--empty_init`           Use empty initial solution
 - `-i`,   `--init_file=FILE`       Load the initial solution from csv file
 - `-o`,   `--output_sol=FILE`      Write the solution to file as csv
