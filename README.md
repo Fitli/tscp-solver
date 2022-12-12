@@ -24,6 +24,7 @@ Default run without options runs the simulated annealing algorithm for 2 million
 - `-e`,   `--empty_init`           Use empty initial solution
 - `-i`,   `--init_file=FILE`       Load the initial solution from csv file
 - `-o`,   `--output_sol=FILE`      Write the solution to file as csv
+- `-m`,   `--init_temp=N`          Initial temperature for simulated annealing
 - `-t`,   `--tabu`                 Use tabu search (default is simulated annealing)
 - `-n`,   `--neigh=N`              Number of generated neighbors for tabu search
 - `-u`,   `--tabu_len=N`           Tabu list length

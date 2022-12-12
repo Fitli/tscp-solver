@@ -12,6 +12,7 @@
 #include "tabu_search.h"
 #include "min_flow.h"
 
+#define INIT_TEMP_DEFAULT -1
 
 typedef struct Arguments Arguments;
 
@@ -25,6 +26,7 @@ struct Arguments {
     char *init_sol_file;
     bool verbose;
     char *out_file;
+    double init_temp;
 };
 
 static char doc[] = "Solver for trainset capacity problem\n"
@@ -37,16 +39,17 @@ static char args_doc[] = "PROBLEM_FILE";
 static struct argp_option options[] = {
         {"verbose",     'v', 0,      0,  "Produce verbose output", 1 },
         {"empty_init",  'e', 0,      0,  "Use empty initial solution", 3 },
-        {"tabu",        't', 0,      0,  "Use tabu search (default is simulated annealing)", 5  },
+        {"tabu",        't', 0,      0,  "Use tabu search (default is simulated annealing)", 6  },
         {"init_file",   'i', "FILE", 0,  "Load the initial solution from csv file", 3 },
         {"output_sol",  'o', "FILE", 0,  "Write the solution to file as csv", 4 },
         {"steps",       's', "N",    0,  "Number of steps (default is 2 million)", 2 },
-        {"neigh",       'n', "N",    0,  "Number of generated neighbors for tabu search", 6 },
-        {"tabu_len",    'u', "N",    0,  "Tabu list length", 6 },
+        {"neigh",       'n', "N",    0,  "Number of generated neighbors for tabu search", 7 },
+        {"tabu_len",    'u', "N",    0,  "Tabu list length", 7 },
+        {"init_temp",   'm', "N",    0,  "Initial temperature for simulated annealing", 5 },
         { 0 }
 };
 
-bool is_number(char* str) {
+bool is_number(const char* str) {
     int i = 0;
     while(str[i] != '\0') {
         if(str[i] < '0' || str[i] > '9') {
@@ -60,6 +63,7 @@ bool is_number(char* str) {
 static error_t parse_opt (int key, char *arg, struct argp_state *state) {
     Arguments *arguments = state->input;
 
+    int res;
     switch(key)
     {
         case 'v':
@@ -100,6 +104,14 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
                 break;
             }
             arguments->tabu_len = atoi(arg);
+            break;
+        case 'm':
+            res = sscanf(arg, "%lf", &arguments->init_temp);
+            if (res < 1 || arguments->init_temp < 0) {
+                printf("Temperature must be a positive number.\n");
+                argp_usage(state);
+                break;
+            }
             break;
         case ARGP_KEY_ARG:
             arguments->problem_spec_file = arg;
@@ -148,13 +160,15 @@ void tabu_run(const char *filename, int steps, int tabu_len, int neigh_size, boo
     destroy_problem(&problem);
 }
 
-void annealing_run(const char *filename, int steps, bool verbose, bool empty_init, char *init_sol_csv, char *output_csv) {
+void annealing_run(const char *filename, int steps, bool verbose, bool empty_init, double temp, char *init_sol_csv, char *output_csv) {
     Problem problem;
     parse_problem(filename, &problem);
 
     Solution sol = get_init_sol(&problem, empty_init, init_sol_csv);
 
-    double temp = init_temp(&problem, &sol, 1000, 0.5);
+    if(temp == INIT_TEMP_DEFAULT) {
+        temp = init_temp(&problem, &sol, 1000, 0.5);
+    }
     double geom_decrease = 1/pow(temp, 1.0/steps);
 
     clock_t init_time = clock();
@@ -182,6 +196,7 @@ int main(int argc, char *argv[]) {
     arguments.init_sol_file = NULL;
     arguments.verbose = false;
     arguments.out_file = NULL;
+    arguments.init_temp = INIT_TEMP_DEFAULT;
     argp_parse (&argp, argc, argv, 0, 0, &arguments);
 
     srand(time(0));
@@ -192,7 +207,7 @@ int main(int argc, char *argv[]) {
     }
     else {
         annealing_run(arguments.problem_spec_file, arguments.num_steps, arguments.verbose, arguments.empty_init,
-                      arguments.init_sol_file, arguments.out_file);
+                      arguments.init_temp, arguments.init_sol_file, arguments.out_file);
     }
     return 0;
 }
