@@ -1,4 +1,7 @@
 # tscp-solver
+My Master's thesis. It's about trains 🚄. It is a metaheuristic solver assigning trainset types to individual connections.
+
+Full text is [here](https://is.muni.cz/th/gnvce/).
 
 ## Dependencies
 The solver uses [libconfig](http://hyperrealm.github.io/libconfig/) library for parsing input files.
